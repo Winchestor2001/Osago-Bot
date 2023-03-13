@@ -1,0 +1,12 @@
+[Unit]
+After=network.target
+Description=osago
+
+[Service]
+Type=simple
+WorkingDirectory=/root/TG-BOTS/OsagoBot
+ExecStart=/root/TG-BOTS/OsagoBot/env/bin/python3.10 app.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

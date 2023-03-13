@@ -6,47 +6,48 @@ from aiogram.types import *
 
 from bot_context import *
 from database.connections import get_products, get_user_info, save_user_product, send_orders_to_admins, \
-    update_user_balance, save_osago_data, send_osago_data_to_admins
+    update_user_balance, save_osago_data, send_osago_data_to_admins, save_vosstanovlenie_kbm_data, \
+    send_vosstanovlenie_kbm_data_to_admins
 from keyboards.any_btns.user_btns import product_btn, choose_proccess_btn, remove_btn, cancel_btn, \
     finish_questionnaire_btn
 from states.AllStates import UserStates
 
 
-async def osago_callback(c: CallbackQuery):
+async def vosstanovlenie_kbm_callback(c: CallbackQuery):
     await c.answer()
-    btn = await product_btn('osago')
-    await c.message.edit_text(osago_text, reply_markup=btn)
+    btn = await product_btn('vosstanovlenie_kbm')
+    await c.message.edit_text(vosstanovlenie_kbm_text, reply_markup=btn)
 
 
-async def select_osago_callback(c: CallbackQuery, state: FSMContext):
+async def select_vosstanovlenie_kbm_callback(c: CallbackQuery, state: FSMContext):
     user_id = c.from_user.id
-    product = await get_products('osago', slug=c.data.split(":")[1])
+    product = await get_products('vosstanovlenie_kbm', slug=c.data.split(":")[1])
     await state.set_data({'product': product[0]['product_name'], 'price': product[0]['product_price']})
     user = await get_user_info(user_id)
     if user[0]['user_balance'] >= product[0]['product_price']:
         await c.answer()
-        btn = await choose_proccess_btn('osago')
+        btn = await choose_proccess_btn('vosstanovlenie_kbm')
         await c.message.edit_text("Выберите процесс заполнение анкеты:", reply_markup=btn)
     else:
         await c.answer(not_enough_money, show_alert=True)
 
 
-async def osago_questionnaire_callback(c: CallbackQuery):
+async def vosstanovlenie_kbm_questionnaire_callback(c: CallbackQuery):
     await c.answer()
     cd = c.data.split("_")[1]
     if cd == 'photo':
         btn = await finish_questionnaire_btn()
         await c.message.delete()
-        await c.message.answer(osago_product_photo_text, reply_markup=btn)
-        await UserStates.osago_data_photo.set()
+        await c.message.answer(vosstanovlenie_kbm_product_photo_text, reply_markup=btn)
+        await UserStates.vosstanovlenie_kbm_photo.set()
     else:
         btn = await cancel_btn()
         await c.message.delete()
-        await c.message.answer(osago_product_text, reply_markup=btn)
-        await UserStates.osago_data.set()
+        await c.message.answer(vosstanovlenie_kbm_product_text, reply_markup=btn)
+        await UserStates.vosstanovlenie_kbm.set()
 
 
-async def osago_photo_questionnaire_state(message: Message, state: FSMContext, album: List[Message] = None):
+async def vosstanovlenie_kbm_photo_questionnaire_state(message: Message, state: FSMContext, album: List[Message] = None):
     text = message.text
     user_id = message.from_user.id
     btn = await remove_btn()
@@ -87,7 +88,7 @@ async def osago_photo_questionnaire_state(message: Message, state: FSMContext, a
         await message.answer(f"{len(photos['photos'])} фото получен.")
 
 
-async def osago_questionnaire_state(message: Message, state: FSMContext):
+async def vosstanovlenie_kbm_questionnaire_state(message: Message, state: FSMContext):
     text = message.text
     user_id = message.from_user.id
     btn = await remove_btn()
@@ -98,23 +99,24 @@ async def osago_questionnaire_state(message: Message, state: FSMContext):
     if text == '❌ Отменить':
         await message.answer("❌ Процесс отменен", reply_markup=btn)
         await state.finish()
-    if len(text) >= 100:
+    if len(text) >= 30:
         data = await state.get_data()
-        await save_osago_data(user_id, text, data)
+        await save_vosstanovlenie_kbm_data(user_id, text, data)
         await message.answer(soon_send_offer, reply_markup=btn)
         await update_user_balance(user_id, value=data['price'], incriment=False)
-        await send_osago_data_to_admins()
+        await send_vosstanovlenie_kbm_data_to_admins()
         await state.finish()
     else:
         await message.answer(error_text)
 
 
-def register_osago_data_py(dp: Dispatcher):
-    dp.register_callback_query_handler(osago_callback, text='osago')
-    dp.register_callback_query_handler(select_osago_callback, text_contains='osago:')
-    dp.register_callback_query_handler(osago_questionnaire_callback, text='osago_photo')
-    dp.register_callback_query_handler(osago_questionnaire_callback, text='osago_simple')
+def register_vosstanovlenie_kbm_data_py(dp: Dispatcher):
+    dp.register_callback_query_handler(vosstanovlenie_kbm_callback, text='vosstanovlenie_kbm')
+    dp.register_callback_query_handler(vosstanovlenie_kbm_questionnaire_callback, text='vosstanovlenie_kbm_photo')
+    dp.register_callback_query_handler(vosstanovlenie_kbm_questionnaire_callback, text='vosstanovlenie_kbm_simple')
+    dp.register_callback_query_handler(select_vosstanovlenie_kbm_callback, text_contains='vosstanovlenie_kbm:')
 
-    dp.register_message_handler(osago_photo_questionnaire_state, content_types=['photo', 'text'], state=UserStates.osago_data_photo)
-    dp.register_message_handler(osago_questionnaire_state, content_types=['text'],
-                                state=UserStates.osago_data)
+    dp.register_message_handler(vosstanovlenie_kbm_photo_questionnaire_state, content_types=['photo', 'text'],
+                                state=UserStates.vosstanovlenie_kbm_photo)
+    dp.register_message_handler(vosstanovlenie_kbm_questionnaire_state, content_types=['text'],
+                                state=UserStates.vosstanovlenie_kbm)

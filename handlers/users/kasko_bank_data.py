@@ -65,6 +65,7 @@ async def kasko_bank_photo_questionnaire_state(message: Message, state: FSMConte
     elif text in ['/start', '/menu', '/cancel']:
         await message.answer("❌ Процесс отменен", reply_markup=btn)
         await state.finish()
+        return
 
     elif message.content_type == 'photo':
         file_ids = [message.photo[-1].file_id]
@@ -91,6 +92,10 @@ async def kasko_bank_questionnaire_state(message: Message, state: FSMContext):
     text = message.text
     user_id = message.from_user.id
     btn = await remove_btn()
+    if text in ['/start', '/menu', '/cancel']:
+        await message.answer("❌ Процесс отменен", reply_markup=btn)
+        await state.finish()
+        return
     if text == '❌ Отменить':
         await message.answer("❌ Процесс отменен", reply_markup=btn)
         await state.finish()

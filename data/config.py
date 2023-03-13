@@ -11,8 +11,8 @@ DB_USER = env.str("DB_USER")
 DB_PASSWORD = env.str("DB_PASSWORD")
 DB_HOST = env.str("DB_HOST")
 DB_PORT = env.str("DB_PORT")
-BOT_CHANNEL_ID = -1001671141710
-BOT_CHANNEL_LINK = 'https://t.me/+n5K3rRkrX1tjZDgy'
+BOT_CHANNEL_ID = -1001719961968
+BOT_CHANNEL_LINK = 'https://t.me/osagomak'
 
 FROM_LINK = {
     'yandex': 'Яндекс',

@@ -65,6 +65,7 @@ async def dk_photo_questionnaire_state(message: Message, state: FSMContext, albu
     elif text in ['/start', '/menu', '/cancel']:
         await message.answer("❌ Процесс отменен", reply_markup=btn)
         await state.finish()
+        return
 
     elif message.content_type == 'photo':
         file_ids = [message.photo[-1].file_id]
@@ -91,10 +92,14 @@ async def dk_questionnaire_state(message: Message, state: FSMContext):
     text = message.text
     user_id = message.from_user.id
     btn = await remove_btn()
+    if text in ['/start', '/menu', '/cancel']:
+        await message.answer("❌ Процесс отменен", reply_markup=btn)
+        await state.finish()
+        return
     if text == '❌ Отменить':
         await message.answer("❌ Процесс отменен", reply_markup=btn)
         await state.finish()
-    if len(text) >= 120:
+    if len(text) >= 50:
         btn = await finish_questionnaire_btn()
         await message.answer(f"├Отправьте фото СТС или ПТС с двух сторон\n<b>❗️(фото отправьте по одному)</b>", reply_markup=btn)
         await UserStates.dk_photos.set()
@@ -122,6 +127,7 @@ async def dk_questionnaire_photo_step_by_step_state(message: Message, state: FSM
     elif text in ['/start', '/menu', '/cancel']:
         await message.answer("❌ Процесс отменен", reply_markup=btn)
         await state.finish()
+        return
 
     elif message.content_type == 'photo':
         photos = await state.get_data()

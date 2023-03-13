@@ -14,9 +14,17 @@ class Users(BaseModel):
     username = CharField(max_length=50, null=True)
     user_balance = FloatField(default=0)
     from_link = CharField(max_length=50)
+    referals = IntegerField(default=0)
 
     class Meta:
         db_name = 'users'
+
+
+class BotConfigs(BaseModel):
+    ref_sum = FloatField()
+
+    class Meta:
+        db_name = 'bot_configs'
 
 
 class Payments(BaseModel):
@@ -61,6 +69,42 @@ class OsagoData(BaseModel):
 
     class Meta:
         db_name = 'osago_data'
+
+
+class VosstanovlenieKBMData(BaseModel):
+    order_id = IntegerField(primary_key=True, unique=True)
+    user_id = ForeignKeyField(Users, to_field='user_id', on_delete='CASCADE')
+    user_data = TextField()
+    product_name = CharField(max_length=150, null=True)
+    price = IntegerField(default=0)
+    date = TimestampField()
+
+    class Meta:
+        db_name = 'vosstanovlenie_kbm_data'
+
+
+class DkbData(BaseModel):
+    order_id = IntegerField(primary_key=True, unique=True)
+    user_id = ForeignKeyField(Users, to_field='user_id', on_delete='CASCADE')
+    user_data = TextField()
+    product_name = CharField(max_length=150, null=True)
+    price = IntegerField(default=0)
+    date = TimestampField()
+
+    class Meta:
+        db_name = 'dkb_data'
+
+
+class SnyatieTSUchotaData(BaseModel):
+    order_id = IntegerField(primary_key=True, unique=True)
+    user_id = ForeignKeyField(Users, to_field='user_id', on_delete='CASCADE')
+    user_data = TextField()
+    product_name = CharField(max_length=150, null=True)
+    price = IntegerField(default=0)
+    date = TimestampField()
+
+    class Meta:
+        db_name = 'snyatie_ts_uchota_data'
 
 
 class DkData(BaseModel):
@@ -153,3 +197,15 @@ class ProductsPhotoQuestionnaire(BaseModel):
 
     class Meta:
         db_name = 'products_photo_questionnaire'
+
+
+class UniqueReferalLinks(BaseModel):
+    referer = CharField(max_length=100)
+    referal_id = CharField(max_length=100, unique=True)
+    referals = IntegerField(default=0)
+
+    class Meta:
+        db_name = 'unique_referal_links'
+
+
+

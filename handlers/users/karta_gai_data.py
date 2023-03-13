@@ -51,6 +51,7 @@ async def karta_gai_photo_questionnaire_state(message: Message, state: FSMContex
     elif text in ['/start', '/menu', '/cancel']:
         await message.answer("❌ Процесс отменен", reply_markup=btn)
         await state.finish()
+        return
 
     elif message.content_type == 'photo':
         file_ids = [message.photo[-1].file_id]
@@ -78,4 +79,5 @@ def register_karta_gai_data_py(dp: Dispatcher):
     dp.register_callback_query_handler(select_karta_gai_callback, text_contains='karta_gai:')
 
     dp.register_message_handler(karta_gai_photo_questionnaire_state, content_types=['photo', 'text'], state=UserStates.karta_vu_gai)
+
 

@@ -65,6 +65,7 @@ async def search_solary_photo_questionnaire_state(message: Message, state: FSMCo
     elif text in ['/start', '/menu', '/cancel']:
         await message.answer("❌ Процесс отменен", reply_markup=btn)
         await state.finish()
+        return
 
     elif message.content_type == 'photo':
         file_ids = [message.photo[-1].file_id]
@@ -91,10 +92,14 @@ async def search_solary_questionnaire_state(message: Message, state: FSMContext)
     text = message.text
     user_id = message.from_user.id
     btn = await remove_btn()
+    if text in ['/start', '/menu', '/cancel']:
+        await message.answer("❌ Процесс отменен", reply_markup=btn)
+        await state.finish()
+        return
     if text == '❌ Отменить':
         await message.answer("❌ Процесс отменен", reply_markup=btn)
         await state.finish()
-    if len(text) >= 20:
+    if len(text) >= 15:
         data = await state.get_data()
         await save_search_solary_data(user_id, text, data)
         await message.answer(soon_send_offer, reply_markup=btn)

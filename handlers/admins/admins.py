@@ -1,5 +1,6 @@
 import asyncio
 import sys
+import uuid
 
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
@@ -7,11 +8,13 @@ from aiogram.types import *
 
 from bot_context import success_order_text
 from database.connections import get_all_admins, update_user_balance, count_users, edited_product_price, \
-    get_all_bot_configs, update_qiwi_token, get_all_users_for_mailing, add_admin, del_admin, get_user_info
+    get_all_bot_configs, update_qiwi_token, get_all_users_for_mailing, add_admin, del_admin, get_user_info, \
+    save_unique_link, get_unique_link, update_ref_sum, get_ref_sum
 from keyboards.any_btns.admin_btns import admin_menu_btn, products_btn
 from keyboards.any_btns.user_btns import remove_btn, cancel_btn
 from loader import dp, bot
 from states.AllStates import AdminStates
+from aiogram.utils.deep_linking import get_start_link
 
 
 async def admin_start(message: Message):
@@ -20,8 +23,10 @@ async def admin_start(message: Message):
     if user_id in admins:
         users, yandex, google, telegram, whatsapp, vkontakte, friend = await count_users()
         qiwi_info = await get_all_bot_configs()
+        ref_sum = await get_ref_sum()
         btn = await admin_menu_btn()
         await message.answer(f"Юзеры: {users}чел.\n\n"
+                             f"Реф.бонус: {ref_sum['ref_sum']}руб\n"
                              f"Yandex: {yandex}чел.\n"
                              f"Google: {google}чел.\n"
                              f"Telegram: {telegram}чел.\n"
@@ -38,11 +43,12 @@ async def admin_send_orders_handler(message: Message):
         content_type = message.content_type
         caption = message.caption
         if content_type == 'document' and not caption is None:
-            await bot.send_document(chat_id=caption, document=message.document.file_id, caption=success_order_text)
+            await bot.send_document(chat_id=int(caption), document=message.document.file_id, caption=success_order_text)
         elif content_type == 'photo' and not caption is None:
-            await bot.send_photo(chat_id=caption, photo=message.photo[-1].file_id, caption=success_order_text)
+            await bot.send_photo(chat_id=int(caption), photo=message.photo[-1].file_id, caption=success_order_text)
 
-        await message.reply("✅ Отправлено")
+        for admin in admins:
+            await bot.send_message(admin, f"✅ Отправлено. <code>{caption}</code>")
 
 
 async def admin_update_user_balance(message: Message):
@@ -50,7 +56,7 @@ async def admin_update_user_balance(message: Message):
     user_id = message.from_user.id
     text = message.text.split()
     if user_id in admins and len(text) == 3:
-        await update_user_balance(user_id=int(text[1]), value=int(text[2]), incriment=True)
+        await update_user_balance(user_id=int(text[1]), value=int(text[2]), sett=True)
         await message.answer("Баланс изменен!")
 
 
@@ -241,8 +247,47 @@ async def mailing_state(message: Message, state: FSMContext):
                                f"Не активных юзеров: <b>{sends_error}</b>")
 
 
+async def make_unique_link_command(message: Message):
+    text = message.text.split()
+    user_id = message.from_user.id
+    admins = await get_all_admins()
+    if len(text) == 2 and user_id in admins:
+        unique_link = str(uuid.uuid4().hex)
+        await save_unique_link(unique_link, text[1])
+        ref_link = await get_start_link(unique_link)
+        await message.answer(f"Уникальная реф.ссылка: {ref_link}\n\n"
+                             f"Для статистики: /ref_stat <code>{unique_link}</code>")
+
+
+async def get_ref_stat_command(message: Message):
+    text = message.text.split()
+    user_id = message.from_user.id
+    admins = await get_all_admins()
+    if len(text) == 2 and user_id in admins:
+        total_refs = await get_unique_link(text[1])
+        if total_refs:
+            ref_link = await get_start_link(total_refs[0]['referal_id'])
+            context = f"{total_refs[0]['referer']} позвал {total_refs[0]['referals']} человек\n\n" \
+                      f"Уникальная реф.ссылка: {ref_link}"
+        else:
+            context = "Неверные данные указали..."
+        await message.reply(context)
+
+
+async def set_ref_sum_command(message: Message):
+    text = message.text.split()
+    user_id = message.from_user.id
+    admins = await get_all_admins()
+    if len(text) == 2 and user_id in admins:
+        await update_ref_sum(float(text[1]))
+        await message.answer("Реф. бонус изменен.")
+
+
 def register_admins_py(dp: Dispatcher):
     dp.register_message_handler(admin_start, commands=['admin'])
+    dp.register_message_handler(make_unique_link_command, commands=['ref_link'])
+    dp.register_message_handler(get_ref_stat_command, commands=['ref_stat'])
+    dp.register_message_handler(set_ref_sum_command, commands=['ref_sum'])
     dp.register_message_handler(admin_update_user_balance, regexp='/money')
     dp.register_message_handler(admin_get_user_info, regexp='/info')
     dp.register_message_handler(add_admin_handler, regexp='/addadmin')

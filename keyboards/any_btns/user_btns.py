@@ -38,15 +38,18 @@ async def show_history_btn():
 
 
 async def services_btn():
-    services = InlineKeyboardMarkup(row_width=2)
+    services = InlineKeyboardMarkup(row_width=1)
     services.add(
         InlineKeyboardButton("📑Купить ОСАГО", callback_data="osago"),
         InlineKeyboardButton("📋Техосмотр", callback_data="dk"),
-        InlineKeyboardButton("📃Мед Справка на права", callback_data="auto_med"),
+        InlineKeyboardButton("📸Фотошоп техосмотр", callback_data="auto_med"),
         InlineKeyboardButton("🏦КАСКО для банка", callback_data="kasko_bank"),
         InlineKeyboardButton("🏪Карта учета ГИБДД", callback_data="karta_gibdd"),
         InlineKeyboardButton("🚓Карта ВУ по базе ГАИ", callback_data="karta_gai"),
         InlineKeyboardButton("🔎Поиск по базе Солярис", callback_data="search_solary"),
+        InlineKeyboardButton("🏦Для восстановления КБМ.", callback_data="vosstanovlenie_kbm"),
+        InlineKeyboardButton("🏷 Договор купли продажи.", callback_data="dogovor_kupli_prodazhi"),
+        InlineKeyboardButton("📇 Снятие ТС с учета.", callback_data="snyatie_ts_s_ucheta"),
     )
     return services
 

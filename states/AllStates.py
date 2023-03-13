@@ -23,6 +23,15 @@ class UserStates(StatesGroup):
     search_solary = State()
     search_solary_photo = State()
 
+    vosstanovlenie_kbm = State()
+    vosstanovlenie_kbm_photo = State()
+
+    dogovor_kupli_prodazhi = State()
+    dogovor_kupli_prodazhi_photo = State()
+
+    snyatie_ts_s_ucheta = State()
+    snyatie_ts_s_ucheta_photo = State()
+
     depozit = State()
     check_payment = State()
 

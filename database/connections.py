@@ -18,7 +18,7 @@ async def check_user(user_id: int):
     with db:
         user = Users.select().where(Users.user_id == user_id)
         user = [model_to_dict(item) for item in user]
-        if user:
+        if len(user) == 0:
             return True
         else:
             return False
@@ -32,14 +32,51 @@ async def get_user_info(user_id: int):
         return user
 
 
-async def update_user_balance(user_id: int, value, incriment: bool = None):
+async def get_ref_sum():
     with db:
-        for user in Users.select().where(Users.user_id == user_id):
-            if incriment:
-                user.user_balance += value
-            else:
-                user.user_balance -= value
-            user.save()
+        ref_sum = BotConfigs.select()
+        ref_sum = [model_to_dict(item) for item in ref_sum]
+        return ref_sum[0]
+
+
+async def update_ref_sum(ref_sum):
+    with db:
+        BotConfigs.update(ref_sum=ref_sum).execute()
+
+
+async def save_unique_link(link, name):
+    with db:
+        UniqueReferalLinks.create(referal_id=link, referer=name)
+
+
+async def get_unique_link(unique_id):
+    with db:
+        referer = UniqueReferalLinks.select().where(
+            (UniqueReferalLinks.referal_id == unique_id) | (UniqueReferalLinks.referer == unique_id))
+        referer = [model_to_dict(item) for item in referer]
+        return referer
+
+
+async def update_unique_referal(unique_id):
+    with db:
+        ref = UniqueReferalLinks.select().where(UniqueReferalLinks.referal_id == unique_id)
+        ref = [model_to_dict(item) for item in ref]
+        UniqueReferalLinks.update(referals=ref[0]['referals'] + 1).where(UniqueReferalLinks.referal_id == unique_id).execute()
+
+
+async def update_user_balance(user_id: int, value, incriment: bool = None, sett=False):
+    with db:
+        user = Users.select().where(Users.user_id == user_id)
+        user = [model_to_dict(item) for item in user]
+        balance = value
+        if sett:
+            Users.update(user_balance=balance).where(Users.user_id == user_id).execute()
+            return
+        if incriment:
+            balance += user[0]['user_balance']
+        else:
+            balance -= user[0]['user_balance']
+        Users.update(user_balance=abs(balance)).where(Users.user_id == user_id).execute()
 
 
 async def count_users():
@@ -116,6 +153,28 @@ async def save_osago_data(user_id: int, context: str, data: dict):
                          price=data['price'])
 
 
+async def save_dogovor_kupli_prodazhi_data(user_id: int, context: str, data: dict):
+    order_id = random.randint(199, 9999)
+    with db:
+        DkbData.create(order_id=order_id, user_id=user_id, user_data=context, product_name=data['product'],
+                       price=data['price'])
+
+
+async def save_snyatie_ts_s_ucheta_data(user_id: int, context: str, data: dict):
+    order_id = random.randint(199, 9999)
+    with db:
+        SnyatieTSUchotaData.create(order_id=order_id, user_id=user_id, user_data=context, product_name=data['product'],
+                                   price=data['price'])
+
+
+async def save_vosstanovlenie_kbm_data(user_id: int, context: str, data: dict):
+    order_id = random.randint(199, 9999)
+    with db:
+        VosstanovlenieKBMData.create(order_id=order_id, user_id=user_id, user_data=context,
+                                     product_name=data['product'],
+                                     price=data['price'])
+
+
 async def save_dk_data(user_id: int, context: str, data: dict):
     order_id = random.randint(199, 9999)
     with db:
@@ -186,13 +245,19 @@ async def send_orders_to_admins():
                 for pic in photos[1:]:
                     media.attach_photo(photo=pic)
 
-                for admin in all_admins:
-                    await loader.bot.send_media_group(chat_id=admin, media=media)
+                try:
+                    for admin in all_admins:
+                        await loader.bot.send_media_group(chat_id=admin, media=media)
+                except:
+                    continue
                 media.clean()
             else:
                 for admin in all_admins:
-                    await loader.bot.send_photo(chat_id=admin, photo=photos[0],
-                                                caption=f"{client_link}\n\nУслуга: {order['product_name']} - {order['product_price']}руб.\nКлиент: <code>{order['user_id']['user_id']}</code>")
+                    try:
+                        await loader.bot.send_photo(chat_id=admin, photo=photos[0],
+                                                    caption=f"{client_link}\n\nУслуга: {order['product_name']} - {order['product_price']}руб.\nКлиент: <code>{order['user_id']['user_id']}</code>")
+                    except:
+                        continue
 
         ProductsPhotoQuestionnaire.delete().execute()
 
@@ -212,10 +277,85 @@ async def send_osago_data_to_admins():
                                    price=item['price'])
             client_link = f"<a href='tg://user?id={item['user_id']['user_id']}'>Клиент ЛС</a>"
             for admin in all_admins:
-                await loader.bot.send_message(chat_id=admin,
-                                              text=f"{client_link}\n\n<b>Данные:</b>\n{item['user_data']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                try:
+                    await loader.bot.send_message(chat_id=admin,
+                                                  text=f"{client_link}\n\n<b>Данные:</b>\n{item['user_data']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                except:
+                    continue
 
         OsagoData.delete().execute()
+
+
+async def send_dogovor_kupli_prodazhi_data_to_admins():
+    with db:
+        data = DkbData.select()
+        data = [model_to_dict(item) for item in data]
+        admins = Admins.select()
+        all_admins = []
+        for admin in admins:
+            all_admins.append(admin)
+        all_admins.extend(ADMINS)
+
+        for item in data:
+            await save_user_orders(user_id=item['user_id']['user_id'], order_name=item['product_name'],
+                                   price=item['price'])
+            client_link = f"<a href='tg://user?id={item['user_id']['user_id']}'>Клиент ЛС</a>"
+            for admin in all_admins:
+                try:
+                    await loader.bot.send_message(chat_id=admin,
+                                                  text=f"{client_link}\n\n<b>Данные:</b>\n{item['user_data']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                except:
+                    continue
+
+        DkbData.delete().execute()
+
+
+async def send_snyatie_ts_s_ucheta_data_to_admins():
+    with db:
+        data = SnyatieTSUchotaData.select()
+        data = [model_to_dict(item) for item in data]
+        admins = Admins.select()
+        all_admins = []
+        for admin in admins:
+            all_admins.append(admin)
+        all_admins.extend(ADMINS)
+
+        for item in data:
+            await save_user_orders(user_id=item['user_id']['user_id'], order_name=item['product_name'],
+                                   price=item['price'])
+            client_link = f"<a href='tg://user?id={item['user_id']['user_id']}'>Клиент ЛС</a>"
+            for admin in all_admins:
+                try:
+                    await loader.bot.send_message(chat_id=admin,
+                                                  text=f"{client_link}\n\n<b>Данные:</b>\n{item['user_data']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                except:
+                    continue
+
+        SnyatieTSUchotaData.delete().execute()
+
+
+async def send_vosstanovlenie_kbm_data_to_admins():
+    with db:
+        data = VosstanovlenieKBMData.select()
+        data = [model_to_dict(item) for item in data]
+        admins = Admins.select()
+        all_admins = []
+        for admin in admins:
+            all_admins.append(admin)
+        all_admins.extend(ADMINS)
+
+        for item in data:
+            await save_user_orders(user_id=item['user_id']['user_id'], order_name=item['product_name'],
+                                   price=item['price'])
+            client_link = f"<a href='tg://user?id={item['user_id']['user_id']}'>Клиент ЛС</a>"
+            for admin in all_admins:
+                try:
+                    await loader.bot.send_message(chat_id=admin,
+                                                  text=f"{client_link}\n\n<b>Данные:</b>\n{item['user_data']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                except:
+                    continue
+
+        VosstanovlenieKBMData.delete().execute()
 
 
 async def send_dk_data_to_admins():
@@ -233,8 +373,11 @@ async def send_dk_data_to_admins():
                                    price=item['price'])
             client_link = f"<a href='tg://user?id={item['user_id']['user_id']}'>Клиент ЛС</a>"
             for admin in all_admins:
-                await loader.bot.send_message(chat_id=admin,
-                                              text=f"{client_link}\n\n<b>Данные:</b>\n{item['user_data']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                try:
+                    await loader.bot.send_message(chat_id=admin,
+                                                  text=f"{client_link}\n\n<b>Данные:</b>\n{item['user_data']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                except:
+                    continue
 
         DkData.delete().execute()
 
@@ -254,8 +397,11 @@ async def send_auto_med_data_to_admins():
                                    price=item['price'])
             client_link = f"<a href='tg://user?id={item['user_id']['user_id']}'>Клиент ЛС</a>"
             for admin in all_admins:
-                await loader.bot.send_message(chat_id=admin,
-                                              text=f"{client_link}\n\n<b>Данные:</b>\n{item['user_data']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                try:
+                    await loader.bot.send_message(chat_id=admin,
+                                                  text=f"{client_link}\n\n<b>Данные:</b>\n{item['user_data']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                except:
+                    continue
 
         AutoMedData.delete().execute()
 
@@ -275,8 +421,11 @@ async def send_karta_gibdd_data_to_admins():
                                    price=item['price'])
             client_link = f"<a href='tg://user?id={item['user_id']['user_id']}'>Клиент ЛС</a>"
             for admin in all_admins:
-                await loader.bot.send_message(chat_id=admin,
-                                              text=f"{client_link}\n\n<b>Данные:</b>\n{item['gos_nomer']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                try:
+                    await loader.bot.send_message(chat_id=admin,
+                                                  text=f"{client_link}\n\n<b>Данные:</b>\n{item['gos_nomer']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                except:
+                    continue
 
         KartaGibddData.delete().execute()
 
@@ -296,8 +445,11 @@ async def send_search_solary_data_to_admins():
                                    price=item['price'])
             client_link = f"<a href='tg://user?id={item['user_id']['user_id']}'>Клиент ЛС</a>"
             for admin in all_admins:
-                await loader.bot.send_message(chat_id=admin,
-                                              text=f"{client_link}\n\n<b>Данные:</b>\n{item['user_data']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                try:
+                    await loader.bot.send_message(chat_id=admin,
+                                                  text=f"{client_link}\n\n<b>Данные:</b>\n{item['user_data']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                except:
+                    continue
 
         SearchSolaryData.delete().execute()
 
@@ -317,14 +469,19 @@ async def send_kasko_bank_data_to_admins():
                                    price=item['price'])
             client_link = f"<a href='tg://user?id={item['user_id']['user_id']}'>Клиент ЛС</a>"
             for admin in all_admins:
-                await loader.bot.send_message(chat_id=admin,
-                                              text=f"{client_link}\n\n<b>Данные:</b>\n{item['user_data']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                try:
+                    await loader.bot.send_message(chat_id=admin,
+                                                  text=f"{client_link}\n\n<b>Данные:</b>\n{item['user_data']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                except:
+                    continue
 
         KaskoBankData.delete().execute()
 
 
 async def save_user_invoice(user_id: int, bill: str):
     with db:
+        if Payments.select().where(Payments.user_id == user_id).exists():
+            Payments.delete().where(Payments.user_id == user_id).execute()
         Payments.create(user_id=user_id, bill_id=bill)
 
 
