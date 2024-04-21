@@ -84,7 +84,8 @@ async def osago_photo_questionnaire_state(message: Message, state: FSMContext, a
         else:
             await state.update_data({'photos': [item for item in file_ids]})
         photos = await state.get_data()
-        await message.answer(f"{len(photos['photos'])} фото получен.")
+        btn = await finish_questionnaire_btn()
+        await message.answer(f"{len(photos['photos'])} фото получен.", reply_markup=btn)
 
 
 async def osago_questionnaire_state(message: Message, state: FSMContext):

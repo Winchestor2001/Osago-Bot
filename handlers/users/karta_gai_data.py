@@ -79,5 +79,3 @@ def register_karta_gai_data_py(dp: Dispatcher):
     dp.register_callback_query_handler(select_karta_gai_callback, text_contains='karta_gai:')
 
     dp.register_message_handler(karta_gai_photo_questionnaire_state, content_types=['photo', 'text'], state=UserStates.karta_vu_gai)
-
-

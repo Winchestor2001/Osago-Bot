@@ -374,8 +374,17 @@ async def send_dk_data_to_admins():
             client_link = f"<a href='tg://user?id={item['user_id']['user_id']}'>Клиент ЛС</a>"
             for admin in all_admins:
                 try:
-                    await loader.bot.send_message(chat_id=admin,
-                                                  text=f"{client_link}\n\n<b>Данные:</b>\n{item['user_data']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                    media = MediaGroup()
+                    photos = item['photos'].replace('[', '').replace(']', '').replace("'", "").replace(" ",
+                                                                                                                "").split(
+                        ',')
+                    media.attach_photo(photo=photos[0],
+                                       caption=f"{client_link}\n\n<b>Данные:</b>\n{item['user_data']}\n\n<b>Услуга:</b> {item['product_name']} - {item['price']}руб.\n<b>Клиент:</b> <code>{item['user_id']['user_id']}</code>")
+                    for pic in photos[1:]:
+                        media.attach_photo(photo=pic)
+
+                    await loader.bot.send_media_group(chat_id=admin, media=media)
+                    media.clean()
                 except:
                     continue
 
@@ -535,3 +544,4 @@ async def add_admin(admin_id: int):
 async def del_admin(admin_id: int):
     with db:
         Admins.delete().where(Admins.admin_id == admin_id).execute()
+        

@@ -42,7 +42,7 @@ async def services_btn():
     services.add(
         InlineKeyboardButton("📑Купить ОСАГО", callback_data="osago"),
         InlineKeyboardButton("📋Техосмотр", callback_data="dk"),
-        InlineKeyboardButton("📸Фотошоп техосмотр", callback_data="auto_med"),
+        # InlineKeyboardButton("📸Фотошоп техосмотр", callback_data="auto_med"),
         InlineKeyboardButton("🏦КАСКО для банка", callback_data="kasko_bank"),
         InlineKeyboardButton("🏪Карта учета ГИБДД", callback_data="karta_gibdd"),
         InlineKeyboardButton("🚓Карта ВУ по базе ГАИ", callback_data="karta_gai"),
@@ -94,7 +94,7 @@ async def remove_btn():
 
 
 async def finish_questionnaire_btn():
-    finish_questionnaire = ReplyKeyboardMarkup(resize_keyboard=True)
+    finish_questionnaire = ReplyKeyboardMarkup(resize_keyboard=True, input_field_placeholder="Нажмите квадратик --->")
     finish_questionnaire.row('✅ Готово')
 
     return finish_questionnaire

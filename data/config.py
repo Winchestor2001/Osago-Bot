@@ -13,6 +13,10 @@ DB_HOST = env.str("DB_HOST")
 DB_PORT = env.str("DB_PORT")
 BOT_CHANNEL_ID = -1001719961968
 BOT_CHANNEL_LINK = 'https://t.me/osagomak'
+SECRET_KEY1 = env.str("SECRET_KEY1")
+SECRET_KEY2 = env.str("SECRET_KEY2")
+API_KEY = env.str("API_KEY")
+MERCHANT_ID = env.str("MERCHANT_ID")
 
 FROM_LINK = {
     'yandex': 'Яндекс',

@@ -26,13 +26,13 @@ async def bot_start_handler(message: Message, state: FSMContext):
         btn = await from_link_btn()
         await message.answer(f"<b>Откуда вы узнали про нас?</b>", reply_markup=btn)
     else:
-        # is_subscribe = await bot.get_chat_member(BOT_CHANNEL_ID, user_id)
-        # if is_subscribe.status != 'left':
+        is_subscribe = await bot.get_chat_member(BOT_CHANNEL_ID, user_id)
+        if is_subscribe.status != 'left':
             btn = await start_menu_btn()
             await message.answer(start_text, reply_markup=btn)
-        # else:
-        #     btn = await channel_btn()
-        #     await message.answer("Подпишитесь на наш канал👇", reply_markup=btn)
+        else:
+            btn = await channel_btn()
+            await message.answer("Подпишитесь на наш канал👇", reply_markup=btn)
 
 
 async def from_link_callback(c: CallbackQuery, state: FSMContext):
@@ -73,7 +73,7 @@ async def user_profile_handler(message: Message):
               f"🆔 ID: {user_id}\n" \
               f"💰 Баланс: {user[0]['user_balance']} руб.\n\n" \
               f"Реф.ссылка: {ref_link}"
-    await message.answer(context, reply_markup=btn)
+    await message.answer(context, reply_markup=btn, disable_web_page_preview=True)
 
 
 async def services_handler(message: Message):
@@ -152,11 +152,11 @@ async def user_depozite_state(message: Message, state: FSMContext):
         await state.finish()
         return
     if text.isdigit():
-        bill = await create_user_invoice(user_id, int(text))
-        await save_user_invoice(user_id, bill.bill_id)
+        invoice = await create_user_invoice(int(text))
+        await save_user_invoice(user_id, invoice[1])
         await message.answer("Минутку....", reply_markup=btn)
         await asyncio.sleep(1.5)
-        btn = await payment_btn(bill.pay_url)
+        btn = await payment_btn(invoice[0])
         await bot.delete_message(user_id, message_id=message.message_id + 1)
         await message.answer(f"✅ Ссылка для оплаты создан <em>(у вас 15 минут чтобы перевести {text}руб.)</em>", reply_markup=btn)
         await state.finish()
@@ -173,10 +173,10 @@ async def cancel_invoice_callback(c: CallbackQuery):
 
 def register_users_py(dp: Dispatcher):
     dp.register_message_handler(bot_start_handler, commands=['start', 'menu', 'cancel'])
-    dp.register_message_handler(support_handler, regexp='☎️ Обратная связь')
-    dp.register_message_handler(channel_link_handler, regexp='💥Телеграм канал')
-    dp.register_message_handler(user_profile_handler, regexp='👤 Профиль')
-    dp.register_message_handler(services_handler, regexp='📂 Наши услуги')
+    dp.register_message_handler(support_handler, text='☎️ Обратная связь')
+    dp.register_message_handler(channel_link_handler, text='💥Телеграм канал')
+    dp.register_message_handler(user_profile_handler, text='👤 Профиль')
+    dp.register_message_handler(services_handler, text='📂 Наши услуги')
 
     dp.register_message_handler(user_depozite_state, state=UserStates.depozit)
 
@@ -188,7 +188,3 @@ def register_users_py(dp: Dispatcher):
     dp.register_callback_query_handler(clear_user_history_callback, text='clear_history')
     dp.register_callback_query_handler(user_depozite_callback, text='depozit')
     dp.register_callback_query_handler(cancel_invoice_callback, text='cancel_invoice')
-
-
-
-

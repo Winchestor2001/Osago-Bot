@@ -8,7 +8,6 @@ async def admin_menu_btn():
     admin_menu = InlineKeyboardMarkup(row_width=2)
     admin_menu.add(
         InlineKeyboardButton('💵 Изменить цены', callback_data='change_prices'),
-        InlineKeyboardButton('🔑 Изменить Qiwi данные', callback_data='change_qiwi_configs'),
         InlineKeyboardButton('📮 Рассылка юзерам', callback_data='sending_all'),
         InlineKeyboardButton('👥 Список админов', callback_data='all_admins')
     )

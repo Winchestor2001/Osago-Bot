@@ -9,7 +9,7 @@ from aiogram.types import *
 from bot_context import success_order_text
 from database.connections import get_all_admins, update_user_balance, count_users, edited_product_price, \
     get_all_bot_configs, update_qiwi_token, get_all_users_for_mailing, add_admin, del_admin, get_user_info, \
-    save_unique_link, get_unique_link, update_ref_sum, get_ref_sum
+    save_unique_link, get_unique_link, update_ref_sum, get_ref_sum, delete_user_payment_bill
 from keyboards.any_btns.admin_btns import admin_menu_btn, products_btn
 from keyboards.any_btns.user_btns import remove_btn, cancel_btn
 from loader import dp, bot
@@ -22,7 +22,6 @@ async def admin_start(message: Message):
     admins = await get_all_admins()
     if user_id in admins:
         users, yandex, google, telegram, whatsapp, vkontakte, friend = await count_users()
-        qiwi_info = await get_all_bot_configs()
         ref_sum = await get_ref_sum()
         btn = await admin_menu_btn()
         await message.answer(f"Юзеры: {users}чел.\n\n"
@@ -32,8 +31,7 @@ async def admin_start(message: Message):
                              f"Telegram: {telegram}чел.\n"
                              f"WhatsApp: {whatsapp}чел.\n"
                              f"Vkontakte: {vkontakte}чел.\n"
-                             f"От друга: {friend}чел.\n\n"
-                             f"QIWI TOKEN:\n<code>{qiwi_info[0]['qiwi_token']}</code>", reply_markup=btn)
+                             f"От друга: {friend}чел.", reply_markup=btn)
 
 
 async def admin_send_orders_handler(message: Message):
@@ -134,15 +132,6 @@ async def select_product_price_state(message: Message, state: FSMContext):
         await state.finish()
     else:
         await message.answer("Введите цифру")
-
-
-async def edit_qiwi_configs_callback(c: CallbackQuery):
-    await c.answer()
-    btn = await cancel_btn()
-    await c.message.answer("Отправьте qiwi токен полученный из https://p2p.qiwi.com", disable_web_page_preview=True,
-                           reply_markup=btn)
-    await AdminStates.update_qiwi_data.set()
-
 
 async def edit_qiwi_configs_state(message: Message, state: FSMContext):
     text = message.text
@@ -283,6 +272,15 @@ async def set_ref_sum_command(message: Message):
         await message.answer("Реф. бонус изменен.")
 
 
+async def delelte_payment_invoice_command(message: Message):
+    text = message.text.split()
+    user_id = message.from_user.id
+    admins = await get_all_admins()
+    if user_id in admins:
+        await delete_user_payment_bill(text[-1])
+        await message.answer(f"Payment invoicec: <code>{text[-1]}</code> deleted!")
+
+
 def register_admins_py(dp: Dispatcher):
     dp.register_message_handler(admin_start, commands=['admin'])
     dp.register_message_handler(make_unique_link_command, commands=['ref_link'])
@@ -292,16 +290,15 @@ def register_admins_py(dp: Dispatcher):
     dp.register_message_handler(admin_get_user_info, regexp='/info')
     dp.register_message_handler(add_admin_handler, regexp='/addadmin')
     dp.register_message_handler(del_admin_handler, regexp='/deladmin')
+    dp.register_message_handler(delelte_payment_invoice_command, regexp='/delbill')
     dp.register_message_handler(admin_send_orders_handler, content_types=['document', 'photo'])
 
     dp.register_message_handler(select_product_price_state, content_types=['text'],
                                 state=AdminStates.update_product_price)
-    dp.register_message_handler(edit_qiwi_configs_state, content_types=['text'], state=AdminStates.update_qiwi_data)
     dp.register_message_handler(mailing_state, content_types=ContentType.ANY, state=AdminStates.sending_to_users)
 
     dp.register_callback_query_handler(update_products_price_callback, text='change_prices')
     dp.register_callback_query_handler(back_to_admin_callback, text='back_to_admin')
     dp.register_callback_query_handler(select_product_price_callback, text_contains='edit_price:')
-    dp.register_callback_query_handler(edit_qiwi_configs_callback, text='change_qiwi_configs')
     dp.register_callback_query_handler(show_all_admins, text='all_admins')
     dp.register_callback_query_handler(mailing_callback, text='sending_all')

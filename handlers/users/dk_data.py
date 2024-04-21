@@ -99,11 +99,11 @@ async def dk_questionnaire_state(message: Message, state: FSMContext):
     if text == '❌ Отменить':
         await message.answer("❌ Процесс отменен", reply_markup=btn)
         await state.finish()
-    if len(text) >= 50:
+    if len(text) >= 40:
         btn = await finish_questionnaire_btn()
+        await state.update_data(text=text)
         await message.answer(f"├Отправьте фото СТС или ПТС с двух сторон\n<b>❗️(фото отправьте по одному)</b>", reply_markup=btn)
         await UserStates.dk_photos.set()
-        await state.finish()
     else:
         await message.answer(error_text)
 
@@ -115,10 +115,9 @@ async def dk_questionnaire_photo_step_by_step_state(message: Message, state: FSM
     if text == '✅ Готово':
         data = await state.get_data()
         if 'photos' in data.keys():
-            await save_dk_data(user_id, text, data)
+            await save_dk_data(user_id, data['text'], data)
             await message.answer(soon_send_offer, reply_markup=btn)
             await send_dk_data_to_admins()
-            await message.answer(soon_send_offer, reply_markup=btn)
             await update_user_balance(user_id, value=data['price'], incriment=False)
             await state.finish()
         else:
@@ -149,5 +148,7 @@ def register_dk_data_py(dp: Dispatcher):
 
     dp.register_message_handler(dk_photo_questionnaire_state, content_types=['photo', 'text'],
                                 state=UserStates.dk_data_photo)
+    dp.register_message_handler(dk_questionnaire_photo_step_by_step_state, content_types=['photo', 'text'],
+                                state=UserStates.dk_photos)
     dp.register_message_handler(dk_questionnaire_state, content_types=['text'],
                                 state=UserStates.dk_data)

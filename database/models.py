@@ -42,13 +42,6 @@ class Admins(BaseModel):
         db_name = 'admins'
 
 
-class QiwiConfig(BaseModel):
-    qiwi_token = TextField(null=True)
-
-    class Meta:
-        db_name = 'qiwi_config'
-
-
 class UserHistory(BaseModel):
     user_id = ForeignKeyField(Users, to_field='user_id', on_delete='CASCADE')
     order_name = CharField(max_length=50, null=True)
@@ -206,6 +199,3 @@ class UniqueReferalLinks(BaseModel):
 
     class Meta:
         db_name = 'unique_referal_links'
-
-
-
