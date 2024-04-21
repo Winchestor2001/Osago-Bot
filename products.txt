@@ -1,0 +1,11 @@
+osago:osago_year:Е-осаго на 1 ГОД:1900
+osago:osago_nodb:Е-осаго БЕЗ БАЗЫ:1600
+dk:texosmotr_c:Диагностическая карта C:3800
+dk:texosmotr_b:Диагностическая карта B:2600
+dk:texosmotr_no_db:Диагностическая карта без базы 1 ГОД:500
+osago:osago_month:Е-осаго на 3 МЕС:500
+auto_med:default_auto_med:Мед справка на права:2500
+karta_gai:default_karta_gai:ВУ по базе ГАИ:1800
+karta_gibdd:default_karta_gibdd:Карта учета ГИБДД:1800
+search_solary:default_search_solary:Поиск по базе  Солярис:1000
+kasko_bank:default_kasko_bank:КАСКО для Банка:4999
