@@ -52,10 +52,9 @@ async def check_user_invoice(user_id: int, bill_id: str):
 
     async with aiohttp.ClientSession() as session:
         async with session.post(url, data=params, headers=headers) as response:
-            try:
+            if response.status == 200:
                 response = await response.json()
-                # await bot.send_message(591250245, f'{response} == {bill_id}')
-                if response['status'] == "success":
+                if response['status'] in ["success", "hold"]:
                     context = f'✅ Ваш баланс пополнен на сумму: {response["amount"]}₽'
                     await update_user_balance(user_id, float(response["amount"]), incriment=True)
                     await delete_user_payment_bill(bill_id)
@@ -65,7 +64,7 @@ async def check_user_invoice(user_id: int, bill_id: str):
                     context = f"🗑 Ссылка для оплаты просрочен и удален."
                     await delete_user_payment_bill(bill_id)
                     return context
-            except:
+            else:
                 await bot.send_message(591250245, f'{response} == {bill_id}')
 
 

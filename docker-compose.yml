@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  bot:
+    build:
+      context: .
+    container_name: tg_bot
+    env_file:
+      - .env
+    command: python3 app.py
+    volumes:
+      - ./:/bot
