@@ -1,0 +1,1 @@
+# osago_max
