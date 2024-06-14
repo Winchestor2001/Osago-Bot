@@ -12,3 +12,12 @@ DB_HOST = env.str("DB_HOST")
 DB_PORT = env.str("DB_PORT")
 
 # SUPPORT_ADMIN = env.str("SUPPORT_ADMIN")
+
+FROM_LINK = {
+    'yandex': 'Яндекс',
+    'google': 'Google',
+    'telegram': 'Телеграм',
+    'whatsapp': 'WhatsApp',
+    'vkontakte': 'Вконтакте',
+    'friend': 'От друга',
+}

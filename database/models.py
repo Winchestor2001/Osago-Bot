@@ -30,11 +30,20 @@ class Channels(BaseModel):
         db_name = 'channels'
 
 
+class BotConfigs(BaseModel):
+    ref_sum = FloatField()
+
+    class Meta:
+        db_name = 'bot_configs'
+
+
 class Admins(BaseModel):
     admin_id = BigIntegerField(primary_key=True, unique=True)
+    admin_username = CharField(max_length=255)
+    admin_fullname = CharField(max_length=300)
 
     class Meta:
         db_name = 'admins'
 
 
-models = [Users, Channels, Admins]
+models = [Users, Channels, Admins, BotConfigs]
