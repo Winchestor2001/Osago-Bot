@@ -7,6 +7,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.utils.deep_linking import create_deep_link
 
 from keyboards.inline.channels import mandatory_channel_btn
+from keyboards.inline.user_btn import from_link_btn
 from loader import bot
 from utils.bot_context import *
 from database.connections import *
@@ -18,12 +19,28 @@ router = Router()
 @router.message(CommandStart(deep_link=True))
 async def start_command(message: Message, state: FSMContext):
     await state.clear()
-    await message.answer(start_text)
+    # await message.answer(start_text)
     user_id, full_name, username = message.from_user.id, message.from_user.full_name, message.from_user.username
-    await add_user(user_id=user_id, full_name=full_name, username=username, from_link="Yandex")
+    # await add_user(user_id=user_id, full_name=full_name, username=username, from_link="Yandex")
     args = message.text.split()[1]
     check = await check_user(user_id)
-    # if args and check:
+    if args != user_id and not check:
+        await state.update_data(referer=args)
+        # bot_configs = await get_bot_configs()
+        # bot_configs = bot_configs[-1]['ref_sum']
+        # await update_user_balance(user_id=args, value=bot_configs, incriment=True)
+        # await bot.send_message(args, f"Вам начилсено реферальный бонус {bot_configs}руб.")
+        
+    if not check:
+        btn = await from_link_btn()
+        await message.answer(f"<b>Откуда вы узнали про нас?</b>", reply_markup=btn)
+
+
+@router.callback_query(F.data.startswith("from:"))
+async def from_link_callback(call: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    print(data)
+    print(call.data)
 
 
 @router.message(Command(commands=['start', 'menu', 'cancel']))
