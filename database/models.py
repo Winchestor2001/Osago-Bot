@@ -16,6 +16,7 @@ class Users(BaseModel):
     user_balance = FloatField(default=0)
     from_link = CharField(max_length=50)
     referals = IntegerField(default=0)
+    date = TimestampField()
 
     class Meta:
         db_name = 'users'
@@ -46,4 +47,14 @@ class Admins(BaseModel):
         db_name = 'admins'
 
 
-models = [Users, Channels, Admins, BotConfigs]
+class UserHistory(BaseModel):
+    user_id = ForeignKeyField(Users, to_field='user_id', on_delete='CASCADE')
+    order_name = CharField(max_length=50, null=True)
+    price = IntegerField(default=0)
+    date = TimestampField()
+
+    class Meta:
+        db_name = 'user_history'
+
+
+models = [Users, Channels, Admins, BotConfigs, UserHistory]

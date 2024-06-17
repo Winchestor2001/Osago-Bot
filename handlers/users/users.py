@@ -6,6 +6,7 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.utils.deep_linking import create_deep_link
 
+from keyboards.default.user_btn import start_menu_btn
 from keyboards.inline.channels import mandatory_channel_btn
 from keyboards.inline.user_btn import from_link_btn
 from loader import bot
@@ -19,18 +20,14 @@ router = Router()
 @router.message(CommandStart(deep_link=True))
 async def start_command(message: Message, state: FSMContext):
     await state.clear()
-    # await message.answer(start_text)
     user_id, full_name, username = message.from_user.id, message.from_user.full_name, message.from_user.username
-    # await add_user(user_id=user_id, full_name=full_name, username=username, from_link="Yandex")
-    args = message.text.split()[1]
+    args = message.text.split()[1] if message.text.split()[1] else None
     check = await check_user(user_id)
     if args != user_id and not check:
         await state.update_data(referer=args)
-        # bot_configs = await get_bot_configs()
-        # bot_configs = bot_configs[-1]['ref_sum']
-        # await update_user_balance(user_id=args, value=bot_configs, incriment=True)
-        # await bot.send_message(args, f"Вам начилсено реферальный бонус {bot_configs}руб.")
-        
+    elif args == user_id:
+        btn = await start_menu_btn()
+        await message.answer(start_text, reply_markup=btn)
     if not check:
         btn = await from_link_btn()
         await message.answer(f"<b>Откуда вы узнали про нас?</b>", reply_markup=btn)
@@ -39,22 +36,30 @@ async def start_command(message: Message, state: FSMContext):
 @router.callback_query(F.data.startswith("from:"))
 async def from_link_callback(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    print(data)
-    print(call.data)
+    from_link = call.data.split(":")[1]
+    user_id, full_name, username = call.from_user.id, call.from_user.full_name, call.from_user.username
+    await add_user(user_id=user_id, full_name=full_name, username=username, from_link=from_link)
+    btn = await start_menu_btn()
+    await call.message.delete()
+    await call.message.answer(start_text, reply_markup=btn)
+    if "referer" in data.keys():
+        referer = data["referer"]
+        bot_configs = await get_bot_configs()
+        bot_configs = bot_configs[-1]['ref_sum']
+        await update_user_balance(user_id=referer, value=bot_configs, incriment=True, referer=True)
+        await bot.send_message(referer, f"Вам начилсено реферальный бонус {bot_configs}руб.")
 
 
 @router.message(Command(commands=['start', 'menu', 'cancel']))
 async def start_command(message: Message, state: FSMContext):
     await state.clear()
-    await message.answer(start_text)
-    user_id, full_name, username = message.from_user.id, message.from_user.full_name, message.from_user.username
-    check = await check_user(user_id)
-    await add_user(user_id=user_id, full_name=full_name, username=username, from_link="Yandex")
-
-
-@router.message()
-async def sss(message: Message):
-    await message.send_copy(chat_id=message.chat.id)
+    check = await check_user(message.from_user.id)
+    if not check:
+        btn = await from_link_btn()
+        await message.answer(f"<b>Откуда вы узнали про нас?</b>", reply_markup=btn)
+    else:
+        btn = await start_menu_btn()
+        await message.answer(start_text, reply_markup=btn)
 
 
 # check whether user subscribed to all channels or not
