@@ -33,6 +33,7 @@ class Channels(BaseModel):
 
 class BotConfigs(BaseModel):
     ref_sum = FloatField()
+    min_sum = FloatField()
 
     class Meta:
         db_name = 'bot_configs'

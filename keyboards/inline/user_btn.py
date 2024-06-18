@@ -31,4 +31,14 @@ async def cancel_inline_btn():
         InlineKeyboardButton(text="❌ Отменить", callback_data="user_profile:cancel")
     )
     btn.adjust(1)
-    return btn.as_markup(resize_keyboard=True)
+    return btn.as_markup()
+
+
+async def payment_btn(bill_url: str):
+    payment = InlineKeyboardBuilder()
+    payment.add(
+        InlineKeyboardButton(text="💸 Оплатить", url=bill_url),
+        InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_invoice"),
+    )
+    payment.adjust(1)
+    return payment.as_markup()
