@@ -44,6 +44,14 @@ async def update_user_balance(user_id: int, value, incriment: bool = None, sett=
         Users.update(user_balance=abs(balance)).where(Users.user_id == user_id).execute()
 
 
+async def get_user_history(user_id: int):
+    with db:
+        history = UserHistory.select().where(UserHistory.user_id == user_id).order_by(UserHistory.date.desc())
+        history = [model_to_dict(item) for item in history]
+
+        return history
+
+
 async def get_all_channels():
     with db:
         channels = Channels.select()

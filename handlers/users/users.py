@@ -2,9 +2,8 @@ import logging
 from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.utils.deep_linking import create_deep_link
+from aiogram.types import Message, CallbackQuery
+from aiogram.exceptions import TelegramAPIError
 
 from keyboards.default.user_btn import start_menu_btn
 from keyboards.inline.channels import mandatory_channel_btn
@@ -21,13 +20,14 @@ router = Router()
 async def start_command(message: Message, state: FSMContext):
     await state.clear()
     user_id, full_name, username = message.from_user.id, message.from_user.full_name, message.from_user.username
-    args = message.text.split()[1] if message.text.split()[1] else None
+    args = message.text.split()[1] if message.text.split()[1] else 0
     check = await check_user(user_id)
-    if args != user_id and not check:
+    if int(args) != user_id and not check:
         await state.update_data(referer=args)
-    elif args == user_id:
+    else:
         btn = await start_menu_btn()
         await message.answer(start_text, reply_markup=btn)
+
     if not check:
         btn = await from_link_btn()
         await message.answer(f"<b>Откуда вы узнали про нас?</b>", reply_markup=btn)
@@ -47,7 +47,10 @@ async def from_link_callback(call: CallbackQuery, state: FSMContext):
         bot_configs = await get_bot_configs()
         bot_configs = bot_configs[-1]['ref_sum']
         await update_user_balance(user_id=referer, value=bot_configs, incriment=True, referer=True)
-        await bot.send_message(referer, f"Вам начилсено реферальный бонус {bot_configs}руб.")
+        try:
+            await bot.send_message(referer, f"Вам начилсено реферальный бонус {bot_configs}руб.")
+        except TelegramAPIError:
+            pass
 
 
 @router.message(Command(commands=['start', 'menu', 'cancel']))

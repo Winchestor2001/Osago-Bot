@@ -21,5 +21,4 @@ async def is_subscribed(user_id):
             text = f"Ошибка при проверке подписки на канал {channel['channel_name']}({channel['channel_url']}): {e}"
             await send_to_admins(text)
 
-
     return not_subscribed_channels

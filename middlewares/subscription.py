@@ -1,11 +1,8 @@
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
 from aiogram import types
 from aiogram.enums import ChatType
-from database.connections import get_all_channels
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from keyboards.inline.channels import mandatory_channel_btn
-from loader import bot
 from utils.misc.is_subscribed import is_subscribed
 
 

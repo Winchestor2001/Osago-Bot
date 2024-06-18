@@ -5,6 +5,7 @@ from . import admins
 routers_list = [
     users.users.router,
     users.profile.router,
+    users.contact.router,
 ]
 
 __all__ = [
