@@ -52,6 +52,11 @@ async def get_user_history(user_id: int):
         return history
 
 
+async def clear_user_history(user_id: int):
+    with db:
+        UserHistory.delete().where(UserHistory.user_id == user_id).execute()
+
+
 async def get_all_channels():
     with db:
         channels = Channels.select()

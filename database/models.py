@@ -58,4 +58,12 @@ class UserHistory(BaseModel):
         db_name = 'user_history'
 
 
-models = [Users, Channels, Admins, BotConfigs, UserHistory]
+class Payments(BaseModel):
+    user_id = ForeignKeyField(Users, to_field='user_id', on_delete='CASCADE')
+    bill_id = CharField(max_length=100)
+
+    class Meta:
+        db_name = 'payments'
+
+
+models = [Users, Channels, Admins, BotConfigs, UserHistory, Payments]

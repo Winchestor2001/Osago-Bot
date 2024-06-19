@@ -4,10 +4,10 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.deep_linking import create_start_link
 
-from database.connections import get_user_info, get_bot_configs
+from database.connections import get_user_info, get_bot_configs, get_user_history, clear_user_history
 from handlers.users.users import start_command
 from keyboards.default.user_btn import cancel_btn, remove_btn, start_menu_btn
-from keyboards.inline.user_btn import payment_btn, user_profile_btn, cancel_inline_btn
+from keyboards.inline.user_btn import payment_btn, user_profile_btn, cancel_inline_btn, show_history_btn
 from states.all_states import UserStates
 from utils.bot_context import *
 from loader import bot
@@ -34,16 +34,42 @@ async def cancel_all_states(message: Message, state: FSMContext):
 @router.callback_query(F.data.startswith("user_profile:"))
 async def user_handler(call: CallbackQuery, state: FSMContext):
     data = call.data.split(":")[1]
-    await call.answer()
-    await call.message.delete()
+    user_id = call.from_user.id
     if data == "depozit":
+        await call.message.delete()
         btn = await cancel_btn()
         bot_configs = await get_bot_configs()
         bot_configs = bot_configs[-1]['min_sum']
         await call.message.answer(depozite_text.format(bot_configs), reply_markup=btn)
         await state.set_state(UserStates.depozit)
     elif data == "user_history":
-        await call.message.answer("dddd")
+        history = (await get_user_history(user_id))[-10:]
+        if len(history) != 0:
+            context = '🗂 Вашы заказа:\n\n'
+            for k, item in enumerate(history, start=1):
+                context += f"{k}) {item['order_name']} | {item['price']}руб | {item['date']}\n"
+
+            btn = await show_history_btn()
+            await call.message.edit_text(context, reply_markup=btn)
+        else:
+            await call.answer("История заказов пуст")
+
+
+@router.callback_query(F.data.startswith("user_history:"))
+async def back_to_profile(call: CallbackQuery, state: FSMContext):
+    data = call.data.split(':')[1]
+    await state.clear()
+    user_id = call.from_user.id
+    if data == "back_profile":
+        await call.message.delete()
+        context, btn = await get_user_context(user_id)
+        await call.message.answer(context, reply_markup=btn, disable_web_page_preview=True)
+    elif data == "clear_history":
+        await clear_user_history(user_id)
+        await call.answer("История очищена")
+        await call.message.delete()
+        context, btn = await get_user_context(user_id)
+        await call.message.answer(context, reply_markup=btn, disable_web_page_preview=True)
 
 
 @router.message(UserStates.depozit)

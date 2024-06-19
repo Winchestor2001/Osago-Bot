@@ -42,3 +42,13 @@ async def payment_btn(bill_url: str):
     )
     payment.adjust(1)
     return payment.as_markup()
+
+
+async def show_history_btn():
+    show_history = InlineKeyboardBuilder()
+    show_history.add(
+        InlineKeyboardButton(text="🗑 Очистить", callback_data="user_history:clear_history"),
+        InlineKeyboardButton(text="🔙 Назад", callback_data="user_history:back_profile"),
+    )
+    show_history.adjust(1)
+    return show_history.as_markup()
