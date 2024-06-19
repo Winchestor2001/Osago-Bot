@@ -66,4 +66,18 @@ class Payments(BaseModel):
         db_name = 'payments'
 
 
-models = [Users, Channels, Admins, BotConfigs, UserHistory, Payments]
+class Services(BaseModel):
+    name = CharField(max_length=300)
+    text = TextField()
+    date = TimestampField()
+
+
+class Products(BaseModel):
+    service = ForeignKeyField(Services, to_field="id", on_delete="CASCADE")
+    name = CharField(max_length=255)
+    template_text = TextField()
+    template_photo = TextField()
+    price = FloatField()
+
+
+models = [Users, Channels, Admins, BotConfigs, UserHistory, Payments, Services, Products]

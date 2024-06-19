@@ -6,6 +6,7 @@ routers_list = [
     users.users.router,
     users.profile.router,
     users.contact.router,
+    users.services.router
 ]
 
 __all__ = [

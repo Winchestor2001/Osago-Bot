@@ -69,3 +69,31 @@ async def get_bot_configs():
         configs = BotConfigs.select()
         configs = [model_to_dict(item) for item in configs]
         return configs
+
+
+async def get_all_services():
+    with db:
+        services = Services.select()
+        services = [model_to_dict(item) for item in services]
+        return services
+
+
+async def get_single_service_by_id(service_id):
+    with db:
+        service = Services.select().where(Services.id == service_id)
+        service = [model_to_dict(item) for item in service]
+        return service
+
+
+async def get_product_by_service(service_id):
+    with db:
+        products = Products.select().where(Products.service == service_id)
+        products = [model_to_dict(item) for item in products]
+        return products
+
+
+async def get_product_by_id(product_id):
+    with db:
+        product = Products.select().where(Products.id == product_id)
+        product = [model_to_dict(item) for item in product]
+        return product

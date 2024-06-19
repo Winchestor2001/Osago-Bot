@@ -12,6 +12,7 @@ async def on_startup():
 
     dp.include_routers(*handlers.routers_list)
     dp.message.middleware(middlewares.subscription.SubscriptionMiddleware())
+    dp.message.middleware(middlewares.album.AlbumMiddleware())
 
     # await bot.delete_webhook(drop_pending_updates=True)  # skip_updates
     await dp.start_polling(bot)
