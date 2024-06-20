@@ -44,6 +44,12 @@ async def update_user_balance(user_id: int, value, incriment: bool = None, sett=
         Users.update(user_balance=abs(balance)).where(Users.user_id == user_id).execute()
 
 
+async def create_user_history(user_id, order_name, price):
+    with db:
+        history = UserHistory.create(user_id=user_id, order_name=order_name, price=price)
+        return model_to_dict(history)
+
+
 async def get_user_history(user_id: int):
     with db:
         history = UserHistory.select().where(UserHistory.user_id == user_id).order_by(UserHistory.date.desc())
@@ -62,6 +68,13 @@ async def get_all_channels():
         channels = Channels.select()
         channels = [model_to_dict(item) for item in channels]
         return channels
+
+
+async def get_all_admins():
+    with db:
+        admins = Admins.select()
+        admins = [model_to_dict(item) for item in admins]
+        return admins
 
 
 async def get_bot_configs():
@@ -97,3 +110,15 @@ async def get_product_by_id(product_id):
         product = Products.select().where(Products.id == product_id)
         product = [model_to_dict(item) for item in product]
         return product
+
+
+async def create_order(user_id, product, text: str = ""):
+    with db:
+        order = Orders.create(user_id=user_id, product=product, text=text)
+        return model_to_dict(order)
+
+
+async def create_photo(order, photo_id):
+    with db:
+        photo = Photos.create(order=order, photo_id=photo_id)
+        return model_to_dict(photo)

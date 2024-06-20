@@ -6,7 +6,7 @@ async def photo_done_btn():
     keyboard = ReplyKeyboardBuilder()
     keyboard.add(
         KeyboardButton(text="✅ Готово"),
-        KeyboardButton(text="🔙 Назад"),
+        KeyboardButton(text="❌ Отменить"),
     )
     keyboard.adjust(1)
     return keyboard.as_markup(resize_keyboard=True)

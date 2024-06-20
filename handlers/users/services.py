@@ -6,13 +6,16 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
 from handlers.users.users import start_command
-from database.connections import get_single_service_by_id, get_user_info, get_product_by_service, get_product_by_id
+from database.connections import get_single_service_by_id, get_user_info, get_product_by_service, get_product_by_id, \
+    create_order, create_photo, update_user_balance, create_user_history
 from keyboards.default.services import photo_done_btn
-from keyboards.default.user_btn import start_menu_btn, remove_btn
+from keyboards.default.user_btn import start_menu_btn, remove_btn, cancel_btn
 from keyboards.inline.services import services_btn, products_btn, choose_proccess_btn
 from states.all_states import Data
 from utils.bot_context import *
 from loader import bot
+from utils.misc.send_msg_admins import send_to_admins
+from utils.misc.useful_functions import send_media_group_to_admin
 
 router = Router()
 
@@ -68,7 +71,43 @@ async def process(call: CallbackQuery, state: FSMContext):
         await call.message.answer(template_photo, reply_markup=btn)
         await state.set_state(Data.photo)
     elif data == "hand":
-        await call.message.answer("qolda yoz !!!")
+        template_text = (await state.get_data())["product"][0]["template_text"]
+        btn = await cancel_btn()
+        await call.message.delete()
+        await call.message.answer(template_text, reply_markup=btn)
+        await state.set_state(Data.text)
+
+
+@router.message(F.content_type.in_({"text"}), Data.text)
+async def get_text(message: Message, state: FSMContext):
+    user_id = message.from_user.id
+    text = message.text
+    data = (await state.get_data())
+    btn = remove_btn
+    if text == "❌ Отменить":
+        await state.clear()
+        await message.answer("❌ Процесс отменен", reply_markup=btn)
+        await start_command(message, state)
+        return
+
+    example_len = len(data["product"][0]["template_text"])
+    if len(text) < (example_len // 4):
+        await message.answer(error_text + ", Следуйте шаблону")
+    else:
+        data = await state.get_data()
+        order = await create_order(user_id=user_id, product=data["product"][0]["id"])
+        context = f"<a href='tg://user?id={order['user_id']['user_id']}'>Клиент ЛС</a>\n\n"
+        context += (f"<b>Данные:</b>\n"
+                    f"{message.text}\n\n")
+        context += (f"<b>Услуга:</b> {order['product']['name']} - {order['product']['price']}\n"
+                    f"<b>Клиент:</b> <code>{order['user_id']['user_id']}</code>")
+        await send_to_admins(context)
+        await message.answer(soon_send_offer, reply_markup=btn)
+        await start_command(message, state)
+        await update_user_balance(user_id, value=order['product']['price'], incriment=False)
+        await create_user_history(user_id=user_id, order_name=order['product']['name'],
+                                  price=order['product']['price'])
+        await state.clear()
 
 
 @router.message(F.content_type.in_({"photo"}), Data.photo)
@@ -97,18 +136,25 @@ async def get_photos(message: Message, state: FSMContext, album: List[Message] =
 async def back_to_main(message: Message, state: FSMContext):
     text = message.text
     btn = remove_btn
-    if text == "🔙 Назад":
+    user_id = message.from_user.id
+    if text == "❌ Отменить":
         await state.clear()
         await message.answer("❌ Процесс отменен", reply_markup=btn)
-        await services_handler(message, state)
+        await start_command(message, state)
     elif text == "✅ Готово":
         data = await state.get_data()
+        photos = []
         if 'photos' in data.keys():
-            # await save_user_product(user_id, data)
+            order = await create_order(user_id=user_id, product=data["product"][0]["id"])
+            for i in data["photos"]:
+                photo = await create_photo(order=order["id"], photo_id=i)
+                photos.append(photo)
+
+            await send_media_group_to_admin(photos)
             await message.answer(soon_send_offer, reply_markup=btn)
             await start_command(message, state)
-            # await update_user_balance(user_id, value=data['price'], incriment=False)
-            # await send_orders_to_admins()
+            await update_user_balance(user_id, value=order['product']['price'], incriment=False)
+            await create_user_history(user_id=user_id, order_name=order['product']['name'], price=order['product']['price'])
             await state.clear()
         else:
             await message.answer("Вы еще не отправили фото.")

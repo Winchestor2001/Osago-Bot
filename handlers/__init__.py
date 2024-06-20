@@ -4,9 +4,9 @@ from . import admins
 
 routers_list = [
     users.users.router,
+    users.services.router,
     users.profile.router,
     users.contact.router,
-    users.services.router
 ]
 
 __all__ = [

@@ -7,3 +7,4 @@ class UserStates(StatesGroup):
 
 class Data(StatesGroup):
     photo = State()
+    text = State()

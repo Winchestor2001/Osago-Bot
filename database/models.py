@@ -80,4 +80,16 @@ class Products(BaseModel):
     price = FloatField()
 
 
-models = [Users, Channels, Admins, BotConfigs, UserHistory, Payments, Services, Products]
+class Orders(BaseModel):
+    user_id = ForeignKeyField(Users, to_field='user_id', on_delete='CASCADE')
+    product = ForeignKeyField(Products, to_field='id', on_delete='CASCADE')
+    text = TextField(null=True)
+    date = TimestampField()
+
+
+class Photos(BaseModel):
+    order = ForeignKeyField(Orders, to_field='id', on_delete="CASCADE")
+    photo_id = CharField(max_length=300)
+
+
+models = [Users, Channels, Admins, BotConfigs, UserHistory, Payments, Services, Products, Orders, Photos]
