@@ -122,3 +122,15 @@ async def create_photo(order, photo_id):
     with db:
         photo = Photos.create(order=order, photo_id=photo_id)
         return model_to_dict(photo)
+
+
+async def count_users():
+    with db:
+        users = Users.select().count()
+        yandex = Users.select().where(Users.from_link == 'yandex').count()
+        google = Users.select().where(Users.from_link == 'google').count()
+        telegram = Users.select().where(Users.from_link == 'telegram').count()
+        whatsapp = Users.select().where(Users.from_link == 'whatsapp').count()
+        vkontakte = Users.select().where(Users.from_link == 'vkontakte').count()
+        friend = Users.select().where(Users.from_link == 'friend').count()
+        return users, yandex, google, telegram, whatsapp, vkontakte, friend
