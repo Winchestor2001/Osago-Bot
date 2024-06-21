@@ -6,6 +6,8 @@ env.read_env()
 
 BOT_TOKEN = env.str("BOT_TOKEN")
 ADMINS = env.list("ADMINS")
+WEBHOOK_URL = env.str("WEBHOOK_URL")
+WEBHOOK_PATH = env.str("WEBHOOK_PATH")
 DB_NAME = env.str("DB_NAME")
 DB_USER = env.str("DB_USER")
 DB_PASSWORD = env.str("DB_PASSWORD")
