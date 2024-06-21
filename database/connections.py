@@ -77,6 +77,17 @@ async def get_all_admins():
         return admins
 
 
+async def add_admin(admin_id, admin_fullname, admin_username):
+    with db:
+        admin = Admins.create(admin_id=admin_id, admin_username=admin_username, admin_fullname=admin_fullname)
+        return model_to_dict(admin)
+
+
+async def delete_admin(admin_id):
+    with db:
+        Admins.delete().where(Admins.admin_id == admin_id).execute()
+
+
 async def get_bot_configs():
     with db:
         configs = BotConfigs.select()

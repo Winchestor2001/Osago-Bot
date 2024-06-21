@@ -8,3 +8,7 @@ class UserStates(StatesGroup):
 class Data(StatesGroup):
     photo = State()
     text = State()
+
+
+class AdminStates(StatesGroup):
+    add_admin_text = State()
