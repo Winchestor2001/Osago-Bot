@@ -63,6 +63,13 @@ async def clear_user_history(user_id: int):
         UserHistory.delete().where(UserHistory.user_id == user_id).execute()
 
 
+async def get_all_users():
+    with db:
+        users = Users.select()
+        users = [model_to_dict(item) for item in users]
+        return users
+
+
 async def get_all_channels():
     with db:
         channels = Channels.select()
