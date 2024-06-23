@@ -63,6 +63,13 @@ async def clear_user_history(user_id: int):
         UserHistory.delete().where(UserHistory.user_id == user_id).execute()
 
 
+async def get_all_users():
+    with db:
+        users = Users.select()
+        users = [model_to_dict(item) for item in users]
+        return users
+
+
 async def get_all_channels():
     with db:
         channels = Channels.select()
@@ -75,6 +82,17 @@ async def get_all_admins():
         admins = Admins.select()
         admins = [model_to_dict(item) for item in admins]
         return admins
+
+
+async def add_admin(admin_id, admin_fullname, admin_username):
+    with db:
+        admin = Admins.create(admin_id=admin_id, admin_username=admin_username, admin_fullname=admin_fullname)
+        return model_to_dict(admin)
+
+
+async def delete_admin(admin_id):
+    with db:
+        Admins.delete().where(Admins.admin_id == admin_id).execute()
 
 
 async def get_bot_configs():
@@ -122,3 +140,15 @@ async def create_photo(order, photo_id):
     with db:
         photo = Photos.create(order=order, photo_id=photo_id)
         return model_to_dict(photo)
+
+
+async def count_users():
+    with db:
+        users = Users.select().count()
+        yandex = Users.select().where(Users.from_link == 'yandex').count()
+        google = Users.select().where(Users.from_link == 'google').count()
+        telegram = Users.select().where(Users.from_link == 'telegram').count()
+        whatsapp = Users.select().where(Users.from_link == 'whatsapp').count()
+        vkontakte = Users.select().where(Users.from_link == 'vkontakte').count()
+        friend = Users.select().where(Users.from_link == 'friend').count()
+        return users, yandex, google, telegram, whatsapp, vkontakte, friend

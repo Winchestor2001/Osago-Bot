@@ -2,7 +2,8 @@ from aiogram.utils.deep_linking import create_start_link
 from aiogram.utils.media_group import MediaGroupBuilder
 from aiogram.exceptions import TelegramAPIError
 
-from database.connections import get_user_info, get_all_admins
+from database.connections import get_user_info, get_all_admins, get_bot_configs, count_users
+from keyboards.inline.admin import admin_menu_btn
 from keyboards.inline.user_btn import user_profile_btn
 from loader import bot
 
@@ -16,6 +17,23 @@ async def get_user_context(user_id):
               f"💰 Баланс: {user[0]['user_balance']} руб.\n" \
               f"👥 Реф.кол: {user[0]['referals']}\n\n" \
               f"🔗 Реф.ссылка: {ref_link}"
+    return context, btn
+
+
+async def get_admin_context():
+    btn = await admin_menu_btn()
+    users, yandex, google, telegram, whatsapp, vkontakte, friend = await count_users()
+    ref_sum = (await get_bot_configs())[-1]["ref_sum"]
+    min_sum = (await get_bot_configs())[-1]["min_sum"]
+    context = (f"Юзеры: {users}чел.\n\n"
+               f"Yandex: {yandex}чел.\n"
+               f"Google: {google}чел.\n"
+               f"Telegram: {telegram}чел.\n"
+               f"WhatsApp: {whatsapp}чел.\n"
+               f"Vkontakte: {vkontakte}чел.\n"
+               f"От друга: {friend}чел.\n\n"
+               f"Реф.бонус: {ref_sum}руб\n"
+               f"Мин сум п.счета: {min_sum}руб")
     return context, btn
 
 

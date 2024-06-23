@@ -206,3 +206,5 @@ snyatie_ts_s_ucheta_product_photo_text = "Отправьте фото:\n" \
                                          f"├птс стс 2 сторон\n" \
                                          f"├паспорт того кто ее купил так же лицевая\n" \
                                          f'<b>❗️ Можно отправить несколько фото</b>'
+
+add_admin_text = "Отправьте мне, user_id + full_name + username<i>(Если это так)</i>"
