@@ -2,9 +2,15 @@ import asyncio
 import logging
 import sys
 
-from loader import dp, bot
+from aiogram.types import Update
+
+from loader import dp, bot, config
 import middlewares, filters, handlers
 from utils.set_bot_commands import set_default_commands
+from fastapi import FastAPI
+from fastapi.requests import Request
+import uvicorn
+from contextlib import asynccontextmanager
 
 
 async def on_startup():
@@ -14,10 +20,30 @@ async def on_startup():
     dp.message.middleware(middlewares.subscription.SubscriptionMiddleware())
     dp.message.middleware(middlewares.album.AlbumMiddleware())
 
-    # await bot.delete_webhook(drop_pending_updates=True)  # skip_updates
-    await dp.start_polling(bot)
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    url_webhook = config.WEBHOOK_URL + config.WEBHOOK_PATH
+    await on_startup()
+    await bot.set_webhook(url=url_webhook,
+                          allowed_updates=dp.resolve_used_update_types(),
+                          drop_pending_updates=True)
+    yield
+    await bot.delete_webhook()
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+@app.post(config.WEBHOOK_PATH)
+async def webhook(request: Request) -> None:
+    update = Update.model_validate(await request.json(), context={"bot": bot})
+    await dp.feed_update(bot, update)
 
 if __name__ == '__main__':
-    # logging.basicConfig(filename="logs/bot_error.log", level=logging.INFO, stream=sys.stdout)
-    asyncio.run(on_startup())
+    logging.basicConfig(
+        level=logging.INFO,
+        format=u'%(filename)s:%(lineno)d #%(levelname)-8s [%(asctime)s] - %(name)s - %(message)s',
+    )
+
+    uvicorn.run("app:app", host="0.0.0.0", port=8001)
