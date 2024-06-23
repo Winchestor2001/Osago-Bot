@@ -40,6 +40,13 @@ async def webhook(request: Request) -> None:
     update = Update.model_validate(await request.json(), context={"bot": bot})
     await dp.feed_update(bot, update)
 
+
+@app.post("/payments")
+async def payments_webhook(request: Request) -> None:
+    request_data = await request.json()
+    logging.info(request_data)
+
+
 if __name__ == '__main__':
     logging.basicConfig(
         level=logging.INFO,
