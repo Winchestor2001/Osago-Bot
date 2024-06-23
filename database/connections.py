@@ -152,3 +152,23 @@ async def count_users():
         vkontakte = Users.select().where(Users.from_link == 'vkontakte').count()
         friend = Users.select().where(Users.from_link == 'friend').count()
         return users, yandex, google, telegram, whatsapp, vkontakte, friend
+
+
+async def admin_get_all_products():
+    with db:
+        products = Products.select()
+        products = [model_to_dict(item) for item in products]
+        return products
+    
+
+async def update_product_price(id: int, price: int):
+    with db:
+        Products.update(price=price).where(Products.id == id).execute()
+
+
+async def update_config_price(sequence: int, price: int):
+    with db:
+        if sequence == 1:
+            BotConfigs.update(ref_sum=price).where(BotConfigs.ref_sum == BotConfigs.ref_sum).execute()
+        elif sequence == 2:
+            BotConfigs.update(min_sum=price).where(BotConfigs.min_sum == BotConfigs.min_sum).execute()
