@@ -2,6 +2,7 @@ from aiogram.utils.deep_linking import create_start_link
 from aiogram.utils.media_group import MediaGroupBuilder
 from aiogram.exceptions import TelegramAPIError
 
+from data.config import ADMINS
 from database.connections import get_user_info, get_all_admins, get_bot_configs, count_users
 from keyboards.inline.admin import admin_menu_btn
 from keyboards.inline.user_btn import user_profile_btn
@@ -40,6 +41,8 @@ async def get_admin_context():
 async def send_media_group_to_admin(photos):
     media = MediaGroupBuilder()
     admins = await get_all_admins()
+    admins = [item['admin_id'] for item in admins if item.get("admin_id")]
+    admins.extend(ADMINS)
     for k, photo in enumerate(photos, start=0):
         client_link = f"<a href='tg://user?id={photo['order']['user_id']['user_id']}'>Клиент ЛС</a>"
         context = (f"{client_link}\n\n<b>Услуга:</b> {photo['order']['product']['name']} - {photo['order']['product']['price']}руб.\n"
@@ -51,6 +54,6 @@ async def send_media_group_to_admin(photos):
 
     try:
         for admin in admins:
-            await bot.send_media_group(chat_id=admin['admin_id'], media=media.build())
+            await bot.send_media_group(chat_id=admin, media=media.build())
     except TelegramAPIError:
         pass
