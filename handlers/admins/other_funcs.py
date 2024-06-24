@@ -11,6 +11,7 @@ from handlers.admins.start import intro_admin
 from keyboards.default.user_btn import cancel_btn, remove_btn
 from loader import bot
 from utils.bot_context import success_order_text
+from utils.misc.send_msg_admins import send_to_admins
 
 router = Router()
 
@@ -50,5 +51,4 @@ async def admin_send_orders_handler(message: Message):
     elif content_type == 'photo' and caption:
         await bot.send_photo(chat_id=int(caption), photo=message.photo[-1].file_id, caption=success_order_text)
 
-    for admin in admins:
-        await bot.send_message(admin['admin_id'], f"✅ Отправлено. <code>{caption}</code>")
+    await send_to_admins(f"✅ Отправлено. <code>{caption}</code>")
