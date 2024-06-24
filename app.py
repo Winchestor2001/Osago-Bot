@@ -6,6 +6,7 @@ from aiogram.types import Update
 
 from loader import dp, bot, config
 import middlewares, filters, handlers
+from utils.misc.payment_invoice import check_user_invoice
 from utils.set_bot_commands import set_default_commands
 from fastapi import FastAPI
 from fastapi.requests import Request
@@ -44,6 +45,8 @@ async def webhook(request: Request) -> None:
 @app.post("/payments")
 async def payments_webhook(request: Request) -> None:
     request_data = await request.json()
+    if request_data:
+        await check_user_invoice(request_data)
     logging.info(request_data)
 
 

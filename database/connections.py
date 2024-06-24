@@ -172,3 +172,20 @@ async def update_config_price(sequence: int, price: int):
             BotConfigs.update(ref_sum=price).where(BotConfigs.ref_sum == BotConfigs.ref_sum).execute()
         elif sequence == 2:
             BotConfigs.update(min_sum=price).where(BotConfigs.min_sum == BotConfigs.min_sum).execute()
+
+
+async def add_user_invoice(user_id: int, bill_id: str):
+    with db:
+        Payments.create(user_id=user_id, bill_id=bill_id)
+
+
+async def get_user_invoice(bill_id: str):
+    with db:
+        invoice = Payments.select().where(Payments.bill_id == bill_id)
+        invoice = [model_to_dict(item) for item in invoice][0]
+        return invoice
+
+
+async def delete_user_invoice(user_id: int):
+    with db:
+        Payments.delete().where(Payments.user_id == user_id).execute()

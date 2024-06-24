@@ -4,13 +4,15 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.deep_linking import create_start_link
 
-from database.connections import get_user_info, get_bot_configs, get_user_history, clear_user_history
+from database.connections import get_user_info, get_bot_configs, get_user_history, clear_user_history, add_user_invoice, \
+    delete_user_invoice
 from handlers.users.users import start_command
 from keyboards.default.user_btn import cancel_btn, remove_btn, start_menu_btn
 from keyboards.inline.user_btn import payment_btn, user_profile_btn, cancel_inline_btn, show_history_btn
 from states.all_states import UserStates
 from utils.bot_context import *
 from loader import bot
+from utils.misc.payment_invoice import create_user_invoice
 from utils.misc.useful_functions import get_user_context
 
 router = Router()
@@ -73,7 +75,7 @@ async def back_to_profile(call: CallbackQuery, state: FSMContext):
 
 
 @router.message(UserStates.depozit)
-async def depozit_handler(message: Message, state: FSMContext):
+async def deposit_handler(message: Message, state: FSMContext):
     text = message.text
     user_id = message.from_user.id
     bot_configs = await get_bot_configs()
@@ -85,12 +87,12 @@ async def depozit_handler(message: Message, state: FSMContext):
     elif int(text) < bot_configs:
         await message.answer(f"Минимальная сумма {bot_configs}руб.")
         return
-    # invoice = await create_user_invoice(int(text))
-    # await save_user_invoice(user_id, invoice[1])
+    invoice_url, bill_id = await create_user_invoice(int(text))
+    await add_user_invoice(user_id, bill_id)
     btn = remove_btn
     await message.answer("⌛️", reply_markup=btn)
-    await asyncio.sleep(1.5)
-    btn = await payment_btn("https://google.com/")
+    await asyncio.sleep(.5)
+    btn = await payment_btn(invoice_url)
     await bot.delete_message(user_id, message_id=message.message_id + 1)
     await message.answer(f"✅ Ссылка для оплаты создан <em>(у вас 15 минут чтобы перевести {text}руб.)</em>", reply_markup=btn)
     await state.clear()
@@ -102,3 +104,4 @@ async def cancel_invoice_handler(call: CallbackQuery):
     await call.message.delete()
     btn = await start_menu_btn()
     await call.message.answer(start_text, reply_markup=btn)
+    await delete_user_invoice(call.from_user.id)
