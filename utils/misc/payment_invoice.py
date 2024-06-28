@@ -35,9 +35,39 @@ async def create_user_invoice(amount):
     return "https://aaio.so/merchant/pay?" + urlencode(params), order_id
 
 
-async def check_user_invoice(request_data):
-    context = f'✅ Ваш баланс пополнен на сумму: {request_data["amount"]}₽'
-    user = await get_user_invoice(request_data['order_id'])
-    await update_user_balance(user['user_id'], float(request_data["amount"]), incriment=True)
-    await delete_user_invoice(user['user_id'])
-    await bot.send_message(chat_id=user['user_id'], text=context)
+# async def check_user_invoice(request_data):
+#     context = f'✅ Ваш баланс пополнен на сумму: {request_data["amount"]}₽'
+#     user = await get_user_invoice(request_data['order_id'])
+#     await update_user_balance(user['user_id'], float(request_data["amount"]), incriment=True)
+#     await delete_user_invoice(user['user_id'])
+#     await bot.send_message(chat_id=user['user_id'], text=context)
+
+
+async def check_user_invoice(user_id: int, bill_id: str):
+    url = 'https://aaio.so/api/info-pay'
+    params = {
+        'merchant_id': MERCHANT_ID,
+        'order_id': bill_id
+    }
+
+    headers = {
+        'Accept': 'application/json',
+        'X-Api-Key': API_KEY
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, data=params, headers=headers) as response:
+            if response.status == 200:
+                response = await response.json()
+                if response['status'] in ["success", "hold"]:
+                    context = f'✅ Ваш баланс пополнен на сумму: {response["amount"]}₽'
+                    await update_user_balance(user_id, float(response["amount"]), incriment=True)
+                    await delete_user_invoice(user_id)
+                    return context
+
+                elif response['status'] == "expired":
+                    context = f"🗑 Ссылка для оплаты просрочен и удален."
+                    await delete_user_invoice(user_id)
+                    return context
+            else:
+                await bot.send_message(591250245, f'{response} == {bill_id}')
