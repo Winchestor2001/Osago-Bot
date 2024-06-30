@@ -14,5 +14,5 @@ router = Router()
 async def intro_admin(message: Message, state: FSMContext):
     await state.clear()
     context, btn = await get_admin_context()
-    await message.answer("Ты находитесь в панели администратора", reply_markup=remove_btn)
+    await message.answer("Вы находитесь в панели администратора", reply_markup=remove_btn)
     await message.answer(context, reply_markup=btn)
