@@ -3,15 +3,33 @@ import logging
 import sys
 
 from aiogram.types import Update
+from pydantic import BaseModel
 
 from loader import dp, bot, config
 import middlewares, filters, handlers
 from utils.misc.payment_invoice import check_user_invoice
 from utils.set_bot_commands import set_default_commands
-from fastapi import FastAPI
+from fastapi import FastAPI, Form
 from fastapi.requests import Request
 import uvicorn
 from contextlib import asynccontextmanager
+
+
+class PaymentRequest(BaseModel):
+    merchant_id: str
+    invoice_id: str
+    order_id: str
+    amount: float
+    currency: str
+    profit: float
+    commission: float
+    commission_client: float
+    commission_type: str
+    sign: str
+    method: str
+    desc: str
+    email: str
+    us_key: str
 
 
 async def on_startup():
@@ -42,12 +60,11 @@ async def webhook(request: Request) -> None:
     await dp.feed_update(bot, update)
 
 
-@app.post("/payments")
-async def payments_webhook(request: Request) -> None:
-    request_data = await request.json()
-    if request_data:
-        await check_user_invoice(request_data)
-    logging.info(request_data)
+@app.post("/payments/")
+async def payments_webhook(request: Request):
+    request_data = await request.form()
+    await check_user_invoice(request_data)
+    return {"message": "Payment data received"}
 
 
 if __name__ == '__main__':

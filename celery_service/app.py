@@ -7,7 +7,7 @@ celery = Celery('app', broker=f'redis://{config.REDIS_HOST}:{config.REDIS_PORT}/
 celery.conf.beat_schedule = {
     'test-task': {
         'task': 'celery_service.tasks.test',
-        'schedule': timedelta(seconds=10)
+        'schedule': timedelta(seconds=20)
     },
 }
 
