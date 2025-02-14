@@ -92,14 +92,9 @@ async def get_text(message: Message, state: FSMContext):
         await start_command(message, state)
         return
 
-    # Улучшенная проверка длины текста
-    template_text = data["product"][0]["template_text"]
-    min_length = len(template_text) // 4
-    min_lines = template_text.count("\n")
+    min_char = data["product"][0]["min_char"]
 
-    user_lines = text.count("\n")
-
-    if len(text) < min_length or user_lines < min_lines:
+    if len(text) < min_char:
         await message.answer(error_text + ", Следуйте шаблону")
         return
 
