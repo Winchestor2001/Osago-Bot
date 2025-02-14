@@ -81,33 +81,43 @@ async def process(call: CallbackQuery, state: FSMContext):
 @router.message(F.content_type.in_({"text"}), Data.text)
 async def get_text(message: Message, state: FSMContext):
     user_id = message.from_user.id
-    text = message.text
-    data = (await state.get_data())
+    text = message.text.strip()
+    data = await state.get_data()
     btn = remove_btn
+
+    # Проверка на отмену
     if text == "❌ Отменить":
         await state.clear()
         await message.answer("❌ Процесс отменен", reply_markup=btn)
         await start_command(message, state)
         return
 
-    example_len = len(data["product"][0]["template_text"])
-    if len(text) < (example_len // 4):
+    # Улучшенная проверка длины текста
+    template_text = data["product"][0]["template_text"]
+    min_length = len(template_text) // 4
+    min_lines = template_text.count("\n")
+
+    user_lines = text.count("\n")
+
+    if len(text) < min_length or user_lines < min_lines:
         await message.answer(error_text + ", Следуйте шаблону")
-    else:
-        data = await state.get_data()
-        order = await create_order(user_id=user_id, product=data["product"][0]["id"])
-        context = f"<a href='tg://user?id={order['user_id']['user_id']}'>Клиент ЛС</a>\n\n"
-        context += (f"<b>Данные:</b>\n"
-                    f"{message.text}\n\n")
-        context += (f"<b>Услуга:</b> {order['product']['name']} - {order['product']['price']}\n"
-                    f"<b>Клиент:</b> <code>{order['user_id']['user_id']}</code>")
-        await send_to_admins(context)
-        await message.answer(soon_send_offer, reply_markup=btn)
-        await start_command(message, state)
-        await update_user_balance(user_id, value=order['product']['price'], incriment=False)
-        await create_user_history(user_id=user_id, order_name=order['product']['name'],
-                                  price=order['product']['price'])
-        await state.clear()
+        return
+
+    order = await create_order(user_id=user_id, product=data["product"][0]["id"])
+    context = (f"<a href='tg://user?id={order['user_id']['user_id']}'>Клиент ЛС</a>\n\n"
+               f"<b>Данные:</b>\n{text}\n\n"
+               f"<b>Услуга:</b> {order['product']['name']} - {order['product']['price']}\n"
+               f"<b>Клиент:</b> <code>{order['user_id']['user_id']}</code>")
+
+    await send_to_admins(context)
+    await message.answer(soon_send_offer, reply_markup=btn)
+    await start_command(message, state)
+
+    await update_user_balance(user_id, value=order['product']['price'], incriment=False)
+    await create_user_history(user_id=user_id, order_name=order['product']['name'],
+                              price=order['product']['price'])
+    await state.clear()
+
 
 
 @router.message(F.content_type.in_({"photo"}), Data.photo)
