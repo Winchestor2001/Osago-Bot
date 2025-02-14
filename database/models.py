@@ -78,6 +78,7 @@ class Products(BaseModel):
     template_text = TextField()
     template_photo = TextField()
     price = FloatField()
+    min_char = IntegerField(default=20)
 
 
 class Orders(BaseModel):
