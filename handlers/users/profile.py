@@ -39,7 +39,8 @@ async def user_handler(call: CallbackQuery, state: FSMContext):
     data = call.data.split(":")[1]
     user_id = call.from_user.id
     if data == "depozit":
-        await call.message.delete()
+        if call.message:
+            await call.message.delete()
         btn = await cancel_btn()
         bot_configs = await get_bot_configs()
         bot_configs = bot_configs[-1]['min_sum']
