@@ -5,11 +5,9 @@ import sys
 from aiogram.types import Update
 from pydantic import BaseModel
 
-from data.config import NICEPAY_SECRET_KEY
 from loader import dp, bot, config
 import middlewares, filters, handlers
 from utils.misc.payment_invoice import check_user_invoice
-from utils.misc.useful_functions import generate_nicepay_hash
 from utils.set_bot_commands import set_default_commands
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.requests import Request
