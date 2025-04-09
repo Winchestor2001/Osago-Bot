@@ -2,8 +2,9 @@ import logging
 from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, LabeledPrice
 from aiogram.exceptions import TelegramAPIError
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from keyboards.default.user_btn import start_menu_btn
 from keyboards.inline.channels import mandatory_channel_btn
@@ -15,6 +16,21 @@ from utils.misc.is_subscribed import is_subscribed
 
 router = Router()
 
+@router.message(Command(commands="buy_subscription"))
+async def send_invoice_handler(message: Message):
+    prices = [LabeledPrice(label="Пополнение балансу", amount=3000)]
+    keyboard = InlineKeyboardBuilder()
+    keyboard.button(text="Пополнить 3000 ⭐️", pay=True)
+
+    await message.answer_invoice(
+        title="Авто услуги",
+        description="Пополнить баланс",
+        prices=prices,
+        provider_token="",
+        payload="subscription_payment",
+        currency="XTR",
+        reply_markup=keyboard.as_markup(),
+    )
 
 @router.message(CommandStart(deep_link=True))
 async def start_command(message: Message, state: FSMContext):

@@ -5,11 +5,13 @@ import sys
 from aiogram.types import Update
 from pydantic import BaseModel
 
+from data.config import NICEPAY_SECRET_KEY
 from loader import dp, bot, config
 import middlewares, filters, handlers
 from utils.misc.payment_invoice import check_user_invoice
+from utils.misc.useful_functions import generate_nicepay_hash
 from utils.set_bot_commands import set_default_commands
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, HTTPException
 from fastapi.requests import Request
 import uvicorn
 from contextlib import asynccontextmanager
@@ -60,11 +62,13 @@ async def webhook(request: Request) -> None:
     await dp.feed_update(bot, update)
 
 
-@app.post("/payments/")
+@app.get("/payments/nicepay/")
 async def payments_webhook(request: Request):
-    request_data = await request.form()
-    await check_user_invoice(request_data)
-    return {"message": "Payment data received"}
+    full_query = dict(request.query_params)
+    if full_query.get("result") == "success":
+        await check_user_invoice(full_query)
+        return {"message": "ok"}
+    return {"message": full_query["result"]}
 
 
 if __name__ == '__main__':

@@ -9,6 +9,7 @@ from database.connections import get_user_info, get_bot_configs, get_user_histor
 from handlers.users.users import start_command
 from keyboards.default.user_btn import cancel_btn, remove_btn, start_menu_btn
 from keyboards.inline.user_btn import payment_btn, user_profile_btn, cancel_inline_btn, show_history_btn
+from services.nicepay import NicepayInvoiceCreator
 from states.all_states import UserStates
 from utils.bot_context import *
 from loader import bot
@@ -87,12 +88,17 @@ async def deposit_handler(message: Message, state: FSMContext):
     elif int(text) < bot_configs:
         await message.answer(f"Минимальная сумма {bot_configs}руб.")
         return
-    invoice_url, bill_id = await create_user_invoice(int(text))
-    await add_user_invoice(user_id, bill_id)
+    # invoice_url, bill_id = await create_user_invoice(int(text))
+    invoice = await NicepayInvoiceCreator().create_invoice(
+        order_id=str(user_id),
+        customer=str(user_id),
+        amount=int(text),
+    )
+    await add_user_invoice(user_id, invoice.get("payment_id"))
     btn = remove_btn
     await message.answer("⌛️", reply_markup=btn)
     await asyncio.sleep(.5)
-    btn = await payment_btn(invoice_url)
+    btn = await payment_btn(invoice.get("link"))
     await bot.delete_message(user_id, message_id=message.message_id + 1)
     await message.answer(f"✅ Ссылка для оплаты создан <em>(у вас 15 минут чтобы перевести {text}руб.)</em>", reply_markup=btn)
     await state.clear()

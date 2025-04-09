@@ -45,8 +45,9 @@ async def send_media_group_to_admin(photos):
     admins.extend(ADMINS)
     for k, photo in enumerate(photos, start=0):
         client_link = f"<a href='tg://user?id={photo['order']['user_id']['user_id']}'>Клиент ЛС</a>"
-        context = (f"{client_link}\n\n<b>Услуга:</b> {photo['order']['product']['name']} - {photo['order']['product']['price']}руб.\n"
-                   f"<b>Клиент:</b> <code>{photo['order']['user_id']['user_id']}</code>")
+        context = (
+            f"{client_link}\n\n<b>Услуга:</b> {photo['order']['product']['name']} - {photo['order']['product']['price']}руб.\n"
+            f"<b>Клиент:</b> <code>{photo['order']['user_id']['user_id']}</code>")
         if k == 0:
             media.add_photo(photo['photo_id'], caption=context)
         else:
