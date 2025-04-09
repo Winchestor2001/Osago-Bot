@@ -1,5 +1,6 @@
 import asyncio
 from aiogram import Router, F
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.deep_linking import create_start_link
@@ -39,8 +40,10 @@ async def user_handler(call: CallbackQuery, state: FSMContext):
     data = call.data.split(":")[1]
     user_id = call.from_user.id
     if data == "depozit":
-        if call.message:
+        try:
             await call.message.delete()
+        except TelegramBadRequest:
+            pass
         btn = await cancel_btn()
         bot_configs = await get_bot_configs()
         bot_configs = bot_configs[-1]['min_sum']
