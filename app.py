@@ -58,7 +58,6 @@ async def payments_webhook(request: Request):
 @app.post("/payments/crystalpay/")
 async def crystalpay_webhook(request: Request):
     payload = await request.json()
-    print("📥 CrystalPay payload:", payload)
 
     state = payload.get("state")
     if state == "payed":
