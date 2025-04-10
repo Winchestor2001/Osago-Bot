@@ -8,8 +8,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from keyboards.default.user_btn import start_menu_btn
 from keyboards.inline.channels import mandatory_channel_btn
-from keyboards.inline.user_btn import from_link_btn
+from keyboards.inline.user_btn import from_link_btn, user_deposit_types_btn
 from loader import bot
+from states.all_states import UserStates
 from utils.bot_context import *
 from database.connections import *
 from utils.misc.is_subscribed import is_subscribed
@@ -99,3 +100,10 @@ async def check_subscribed(call: CallbackQuery):
         await call.answer("Благодарим вас за подписку на все необходимые каналы!")
         await call.message.delete()
         await call.message.answer(start_text)
+
+
+@router.message(F.text == "💰 Пополнить баланс")
+async def user_deposit_handler(message: Message, state: FSMContext):
+    btn = await user_deposit_types_btn()
+    await message.answer(text="💰 Выбери способ пополнения:", reply_markup=btn)
+    await state.set_state(UserStates.deposit_types)
