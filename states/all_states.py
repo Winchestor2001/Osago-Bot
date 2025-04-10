@@ -3,6 +3,7 @@ from aiogram.fsm.state import StatesGroup, State
 
 class UserStates(StatesGroup):
     depozit = State()
+    deposit_types = State()
 
 
 class Data(StatesGroup):
