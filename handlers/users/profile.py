@@ -3,7 +3,6 @@ from aiogram import Router, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
-from crystalpayio import CrystalPayIO
 
 from database.connections import get_user_info, get_bot_configs, get_user_history, clear_user_history, add_user_invoice, \
     delete_user_invoice
