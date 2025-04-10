@@ -5,8 +5,7 @@ from data.config import CRYSTALPAY_LOGIN, CRYSTALPAY_SECRET, WEBHOOK_URL
 
 
 class CrystalPayClient:
-    BASE_URL = "https://api.crystalpay.io/v3/invoice/create/"
-
+    BASE_URL = "https://api.crystalpay.io/v3/invoice"
     def __init__(self):
         self.auth_login = CRYSTALPAY_LOGIN
         self.auth_secret = CRYSTALPAY_SECRET
@@ -45,7 +44,24 @@ class CrystalPayClient:
         payload.update({k: v for k, v in optional_fields.items() if v is not None})
 
         async with httpx.AsyncClient() as client:
-            response = await client.post(self.BASE_URL, json=payload)
+            response = await client.post(self.BASE_URL + '/create/', json=payload)
+            response.raise_for_status()
+            data = response.json()
+
+        if data.get("error"):
+            raise Exception(f"CrystalPay error: {data.get('errors')}")
+
+        return data
+
+    async def get_invoice_info(self, invoice_id: str) -> dict:
+        payload = {
+            "auth_login": self.auth_login,
+            "auth_secret": self.auth_secret,
+            "id": invoice_id,
+        }
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(self.BASE_URL + '/info/', json=payload)
             response.raise_for_status()
             data = response.json()
 

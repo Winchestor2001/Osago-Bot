@@ -4,14 +4,15 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
-from database.connections import get_user_info, get_bot_configs, get_user_history, clear_user_history, add_user_invoice, \
+from database.connections import get_bot_configs, get_user_history, clear_user_history, add_user_invoice, \
     delete_user_invoice
 from handlers.users.users import start_command
 from keyboards.default.user_btn import cancel_btn, remove_btn, start_menu_btn
-from keyboards.inline.user_btn import payment_btn, user_profile_btn, cancel_inline_btn, show_history_btn, \
+from keyboards.inline.user_btn import payment_btn, show_history_btn, \
     user_deposit_types_btn
-from services.crystalpay import CrystalPayClient
-from services.nicepay import NicepayInvoiceCreator
+from services.payments import translate_crystalpay_type
+from services.payments.crystalpay import CrystalPayClient
+from services.payments.nicepay import NicepayInvoiceCreator
 from states.all_states import UserStates
 from utils.bot_context import *
 from loader import bot
@@ -119,25 +120,28 @@ async def deposit_handler(message: Message, state: FSMContext):
         )
         invoice_link = invoice.get("link")
         invoice_id = invoice.get("payment_id")
+        btn_type = 'nicepay'
     else:
         invoice = await CrystalPayClient().create_invoice(amount=int(text), extra=str(user_id))
         invoice_link = invoice.get("url")
         invoice_id = invoice.get("id")
+        btn_type = 'crystalpay'
+
     await add_user_invoice(user_id, invoice_id)
     btn = remove_btn
-    await message.answer("⌛️", reply_markup=btn)
+    loader_msg = await message.answer("⌛️", reply_markup=btn)
     await asyncio.sleep(.5)
-    btn = await payment_btn(invoice_link)
-    await bot.delete_message(user_id, message_id=message.message_id + 1)
+    btn = await payment_btn(invoice_link, btn_type, invoice_id)
+    await bot.delete_message(user_id, message_id=loader_msg.message_id)
     await message.answer(f"✅ Ссылка для оплаты создан <em>(у вас 15 минут чтобы перевести {text}руб.)</em>",
                          reply_markup=btn)
     await state.clear()
 
 
-@router.callback_query(F.data == "cancel_invoice")
-async def cancel_invoice_handler(call: CallbackQuery):
-    await call.answer("Процесс оплаты отменен!", show_alert=True)
-    await call.message.delete()
-    btn = await start_menu_btn()
-    await call.message.answer(start_text, reply_markup=btn)
+@router.callback_query(F.data.startswith("check_invoice:"))
+async def check_invoice_handler(call: CallbackQuery):
+    _, invoice_id = call.data.split(':')
+    invoice_info = await CrystalPayClient().get_invoice_info(invoice_id)
+    invoice_status = translate_crystalpay_type(invoice_info.get("state"))
+    await call.answer(invoice_status, show_alert=True)
     await delete_user_invoice(call.from_user.id)

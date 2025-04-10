@@ -28,8 +28,8 @@ async def user_profile_btn(user_id):
 async def user_deposit_types_btn():
     keyboard = InlineKeyboardBuilder()
     keyboard.add(
-        InlineKeyboardButton(text=f"💳 Карта/СБП/Крипто", callback_data=f"deposit:nicepay"),
-        InlineKeyboardButton(text=f"🤖 CryptoBot", callback_data=f"deposit:crystalpay"),
+        InlineKeyboardButton(text=f"💳 Карта/СБП", callback_data=f"deposit:nicepay"),
+        InlineKeyboardButton(text=f"🤑 Крипто", callback_data=f"deposit:crystalpay"),
         InlineKeyboardButton(text=f"🔙 Назад", callback_data=f"deposit:back"),
     )
     keyboard.adjust(1)
@@ -45,12 +45,13 @@ async def cancel_inline_btn():
     return btn.as_markup()
 
 
-async def payment_btn(bill_url: str):
+async def payment_btn(bill_url: str, deposit_type: str, invoice_id: str):
     payment = InlineKeyboardBuilder()
     payment.add(
-        InlineKeyboardButton(text="💸 Оплатить", url=bill_url),
-        InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_invoice"),
+        InlineKeyboardButton(text="💸 Оплатить", url=bill_url)
     )
+    if deposit_type == "crystalpay":
+        payment.add(InlineKeyboardButton(text="♻️ Проверить", callback_data=f"check_invoice:{invoice_id}"))
     payment.adjust(1)
     return payment.as_markup()
 

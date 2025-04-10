@@ -1,16 +1,12 @@
-import asyncio
 import logging
-import sys
 
 from aiogram.types import Update
-from pydantic import BaseModel
 
-from data.config import CRYSTALPAY_SALT
 from loader import dp, bot, config
-import middlewares, filters, handlers
-from utils.misc.payment_invoice import check_user_invoice
+import middlewares, handlers
+from services.payments import check_user_invoice
 from utils.set_bot_commands import set_default_commands
-from fastapi import FastAPI, Form, HTTPException
+from fastapi import FastAPI
 from fastapi.requests import Request
 import uvicorn
 from contextlib import asynccontextmanager
