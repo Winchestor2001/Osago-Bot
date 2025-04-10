@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 from data.config import SECRET_KEY1, API_KEY, MERCHANT_ID, BOT_TOKEN
 from uuid import uuid4
 
+from keyboards.default.user_btn import start_menu_btn
 from loader import bot
 
 
@@ -33,9 +34,9 @@ async def create_user_invoice(amount):
     return "https://aaio.so/merchant/pay?" + urlencode(params), order_id
 
 
-async def check_user_invoice(request_data):
-    context = f'✅ Ваш баланс пополнен на сумму: {request_data.get("amount")}₽'
-    user = request_data.get("order_id")['order_id']
-    await update_user_balance(user['user_id'], float(request_data.get("amount")), incriment=True)
-    await delete_user_invoice(user['user_id'])
-    await bot.send_message(chat_id=user['user_id'], text=context)
+async def check_user_invoice(amount, user_id):
+    context = f'✅ Ваш баланс пополнен на сумму: {amount}₽'
+    await update_user_balance(user_id, amount, incriment=True)
+    await delete_user_invoice(user_id)
+    btn = await start_menu_btn()
+    await bot.send_message(chat_id=user_id, text=context, reply_markup=btn)

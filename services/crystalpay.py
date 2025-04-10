@@ -1,7 +1,7 @@
 import httpx
 from typing import Optional
 
-from data.config import CRYSTALPAY_LOGIN, CRYSTALPAY_SECRET
+from data.config import CRYSTALPAY_LOGIN, CRYSTALPAY_SECRET, WEBHOOK_URL
 
 
 class CrystalPayClient:
@@ -14,7 +14,7 @@ class CrystalPayClient:
     async def create_invoice(
             self,
             amount: float | int,
-            lifetime: int = 5,
+            lifetime: int = 15,
             invoice_type: str = "purchase",
             amount_currency: Optional[str] = None,
             required_method: Optional[str] = None,
@@ -22,7 +22,7 @@ class CrystalPayClient:
             description: Optional[str] = None,
             extra: Optional[str] = None,
             redirect_url: Optional[str] = None,
-            callback_url: Optional[str] = None,
+            callback_url: Optional[str] = WEBHOOK_URL + '/payments/crystalpay/',
     ) -> dict:
         payload = {
             "auth_login": self.auth_login,

@@ -5,6 +5,7 @@ import sys
 from aiogram.types import Update
 from pydantic import BaseModel
 
+from data.config import CRYSTALPAY_SALT
 from loader import dp, bot, config
 import middlewares, filters, handlers
 from utils.misc.payment_invoice import check_user_invoice
@@ -13,23 +14,6 @@ from fastapi import FastAPI, Form, HTTPException
 from fastapi.requests import Request
 import uvicorn
 from contextlib import asynccontextmanager
-
-
-class PaymentRequest(BaseModel):
-    merchant_id: str
-    invoice_id: str
-    order_id: str
-    amount: float
-    currency: str
-    profit: float
-    commission: float
-    commission_client: float
-    commission_type: str
-    sign: str
-    method: str
-    desc: str
-    email: str
-    us_key: str
 
 
 async def on_startup():
@@ -64,9 +48,25 @@ async def webhook(request: Request) -> None:
 async def payments_webhook(request: Request):
     full_query = dict(request.query_params)
     if full_query.get("result") == "success":
-        await check_user_invoice(full_query)
+        amount = full_query.get("amount")
+        user_id = full_query.get("order_id")
+        await check_user_invoice(amount=amount, user_id=user_id)
         return {"message": "ok"}
     return {"message": full_query["result"]}
+
+
+@app.post("/payments/crystalpay/")
+async def crystalpay_webhook(request: Request):
+    payload = await request.json()
+    print("📥 CrystalPay payload:", payload)
+
+    state = payload.get("state")
+    if state == "payed":
+        user_id = payload.get("extra")
+        amount = float(payload.get("rub_amount", 0))
+        await check_user_invoice(amount=amount, user_id=user_id)
+
+    return {"message": "ok"}
 
 
 if __name__ == '__main__':

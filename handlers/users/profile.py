@@ -120,7 +120,7 @@ async def deposit_handler(message: Message, state: FSMContext):
         invoice_link = invoice.get("link")
         invoice_id = invoice.get("payment_id")
     else:
-        invoice = await CrystalPayClient().create_invoice(amount=int(text))
+        invoice = await CrystalPayClient().create_invoice(amount=int(text), extra=str(user_id))
         invoice_link = invoice.get("url")
         invoice_id = invoice.get("id")
     await add_user_invoice(user_id, invoice_id)
