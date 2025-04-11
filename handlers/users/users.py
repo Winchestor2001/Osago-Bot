@@ -99,7 +99,8 @@ async def check_subscribed(call: CallbackQuery):
     else:
         await call.answer("Благодарим вас за подписку на все необходимые каналы!")
         await call.message.delete()
-        await call.message.answer(start_text)
+        btn = await start_menu_btn()
+        await call.message.answer(start_text, reply_markup=btn)
 
 
 @router.message(F.text == "💰 Пополнить баланс")
