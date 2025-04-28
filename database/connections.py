@@ -106,7 +106,7 @@ async def get_all_services():
     with db:
         services = Services.select()
         services = [model_to_dict(item) for item in services]
-        return services.sort()
+        return sorted(services)
 
 
 async def get_single_service_by_id(service_id):
