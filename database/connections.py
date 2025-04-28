@@ -104,9 +104,9 @@ async def get_bot_configs():
 
 async def get_all_services():
     with db:
-        services = Services.select()
+        services = Services.select().order_by(Services.id)
         services = [model_to_dict(item) for item in services]
-        return sorted(services)
+        return services
 
 
 async def get_single_service_by_id(service_id):
