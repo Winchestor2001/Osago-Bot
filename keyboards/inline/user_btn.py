@@ -75,5 +75,4 @@ async def necessary_btn():
         InlineKeyboardButton(text="📜 Правила", url="https://telegra.ph/Pravila-i-soglasheniya-pered-zakazom-04-28"),
         InlineKeyboardButton(text="🗣 Отзывы", url="https://t.me/osagotziv")
     )
-    necessary.adjust(1)
     return necessary.as_markup()
