@@ -64,3 +64,14 @@ async def show_history_btn():
     )
     show_history.adjust(1)
     return show_history.as_markup()
+
+
+async def necessary_btn():
+    necessary = InlineKeyboardBuilder()
+    necessary.add(
+        InlineKeyboardButton(text="📩 Новости", url="t.me/avtouslugi1"),
+        InlineKeyboardButton(text="📜 Правила", url="https://telegra.ph/Pravila-i-soglasheniya-pered-zakazom-04-28"),
+        InlineKeyboardButton(text="🗣 Отзывы", url="https://t.me/osagotziv"),
+    )
+    necessary.adjust(1)
+    return necessary.as_markup()

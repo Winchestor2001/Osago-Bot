@@ -11,6 +11,7 @@ async def start_menu_btn():
         KeyboardButton(text='📂 Наши услуги'), KeyboardButton(text='👤 Профиль')
     )
     start_menu.row(KeyboardButton(text='💰 Пополнить баланс'))
+    start_menu.row(KeyboardButton(text='📌 Выжное'))
     start_menu.row(KeyboardButton(text='☎️ Обратная связь'), KeyboardButton(text='💥Телеграм канал'))
     return start_menu.as_markup(resize_keyboard=True)
 

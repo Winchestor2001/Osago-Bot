@@ -11,6 +11,7 @@ from database.connections import get_single_service_by_id, get_user_info, get_pr
 from keyboards.default.services import photo_done_btn
 from keyboards.default.user_btn import start_menu_btn, remove_btn, cancel_btn
 from keyboards.inline.services import services_btn, products_btn, choose_proccess_btn
+from keyboards.inline.user_btn import necessary_btn
 from states.all_states import Data
 from utils.bot_context import *
 from loader import bot
@@ -163,3 +164,9 @@ async def back_to_main(message: Message, state: FSMContext):
             await state.clear()
         else:
             await message.answer("Вы еще не отправили фото.")
+
+
+@router.message(F.text == "📌 Выжное")
+async def necessary_handler(message: Message, state: FSMContext):
+    btn = await necessary_btn()
+    await message.answer(text="<b>Выберите необходимый пункт:</b>", reply_markup=btn)
