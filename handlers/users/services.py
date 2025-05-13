@@ -169,7 +169,7 @@ async def back_to_main(message: Message, state: FSMContext):
             await message.answer("Вы еще не отправили фото.")
 
 
-@router.message(F.text == "📌 Выжное")
+@router.message(F.text == "📌 Важное")
 async def necessary_handler(message: Message, state: FSMContext):
     btn = await necessary_btn()
     await message.answer(text="<b>Выберите необходимый пункт:</b>", reply_markup=btn)
