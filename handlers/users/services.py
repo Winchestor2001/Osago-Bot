@@ -2,7 +2,7 @@ import asyncio
 from typing import List
 
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram.fsm.context import FSMContext
 
 from handlers.users.users import start_command
@@ -25,7 +25,8 @@ router = Router()
 async def services_handler(message: Message, state: FSMContext):
     await state.clear()
     btn = await services_btn()
-    await message.answer("📂 Наши услуги", reply_markup=btn)
+    img = FSInputFile("images/services_preview.jpg")
+    await message.answer_photo(photo=img, caption="📂 Наши услуги", reply_markup=btn)
 
 
 @router.callback_query(F.data.startswith("services:"))
