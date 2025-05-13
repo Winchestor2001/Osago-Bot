@@ -32,14 +32,14 @@ async def services_handler(message: Message, state: FSMContext):
 @router.callback_query(F.data.startswith("services:"))
 async def services_handler_call(call: CallbackQuery, state: FSMContext):
     data = call.data.split(":")[1]
+    await call.message.delete()
     if data == "back_to_main_menu":
-        await call.message.delete()
         btn = await start_menu_btn()
         await call.message.answer(start_text, reply_markup=btn)
     elif data.isdigit():
         service = await get_single_service_by_id(data)
         btn = await products_btn(data)
-        await call.message.edit_text(service[0]["text"], reply_markup=btn)
+        await call.message.answer(service[0]["text"], reply_markup=btn)
 
 
 @router.callback_query(F.data.startswith("products:"))
