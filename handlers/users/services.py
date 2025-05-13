@@ -47,8 +47,10 @@ async def products_handler(call: CallbackQuery, state: FSMContext):
     data = call.data.split(":")[1]
     user_id = call.from_user.id
     if data == "back_to_services":
+        await call.message.delete()
         btn = await services_btn()
-        await call.message.edit_text("📂 Наши услуги", reply_markup=btn)
+        img = FSInputFile("images/services_preview.jpg")
+        await call.message.answer_photo(photo=img, caption="📂 Наши услуги", reply_markup=btn)
     elif data.isdigit():
         product = await get_product_by_id(data)
         user = await get_user_info(user_id)
