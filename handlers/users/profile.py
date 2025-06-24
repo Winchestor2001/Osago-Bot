@@ -1,4 +1,6 @@
 import asyncio
+import uuid
+
 from aiogram import Router, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, CallbackQuery
@@ -11,6 +13,7 @@ from keyboards.default.user_btn import cancel_btn, remove_btn, start_menu_btn
 from keyboards.inline.user_btn import payment_btn, show_history_btn, \
     user_deposit_types_btn
 from services.payments import translate_crystalpay_type
+from services.payments.aaio_service import AaioService
 from services.payments.crystalpay import CrystalPayClient
 from services.payments.nicepay import NicepayInvoiceCreator
 from states.all_states import UserStates
@@ -121,6 +124,15 @@ async def deposit_handler(message: Message, state: FSMContext):
         invoice_link = invoice.get("link")
         invoice_id = invoice.get("payment_id")
         btn_type = 'nicepay'
+    elif state_data.get("deposit_type") == "aaio":
+        order_id = str(uuid.uuid4().hex)
+        invoice_link = await AaioService().create_payment_url(
+            order_id=str(order_id),
+            amount=int(text),
+            us_key=str(user_id)
+        )
+        invoice_id = order_id
+        btn_type = 'aaio'
     else:
         invoice = await CrystalPayClient().create_invoice(amount=int(text), extra=str(user_id))
         invoice_link = invoice.get("url")

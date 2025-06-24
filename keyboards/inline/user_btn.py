@@ -28,7 +28,8 @@ async def user_profile_btn(user_id):
 async def user_deposit_types_btn():
     keyboard = InlineKeyboardBuilder()
     keyboard.add(
-        InlineKeyboardButton(text=f"💳 Карта/СБП", callback_data=f"deposit:nicepay"),
+        InlineKeyboardButton(text=f"💳 СБП", callback_data=f"deposit:aaio"),
+        InlineKeyboardButton(text=f"💳 Карта", callback_data=f"deposit:nicepay"),
         InlineKeyboardButton(text=f"🤑 Крипто", callback_data=f"deposit:crystalpay"),
         InlineKeyboardButton(text=f"🔙 Назад", callback_data=f"deposit:back"),
     )

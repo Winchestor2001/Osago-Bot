@@ -1,3 +1,4 @@
+aaio==1.4.2
 aiofiles==23.2.1
 aiogram==3.7.0
 aiohttp==3.9.5
