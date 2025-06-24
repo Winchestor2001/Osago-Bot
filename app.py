@@ -102,4 +102,4 @@ if __name__ == '__main__':
         format=u'%(filename)s:%(lineno)d #%(levelname)-8s [%(asctime)s] - %(name)s - %(message)s',
     )
 
-    uvicorn.run("app:app", host="0.0.0.0", port=8002)
+    uvicorn.run("app:app", host="0.0.0.0", port=8001)
