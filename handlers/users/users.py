@@ -17,21 +17,21 @@ from utils.misc.is_subscribed import is_subscribed
 
 router = Router()
 
-@router.message(Command(commands="buy_subscription"))
-async def send_invoice_handler(message: Message):
-    prices = [LabeledPrice(label="Пополнение балансу", amount=3000)]
-    keyboard = InlineKeyboardBuilder()
-    keyboard.button(text="Пополнить 3000 ⭐️", pay=True)
-
-    await message.answer_invoice(
-        title="Авто услуги",
-        description="Пополнить баланс",
-        prices=prices,
-        provider_token="",
-        payload="subscription_payment",
-        currency="XTR",
-        reply_markup=keyboard.as_markup(),
-    )
+# @router.message(Command(commands="buy_subscription"))
+# async def send_invoice_handler(message: Message):
+#     prices = [LabeledPrice(label="Пополнение балансу", amount=3000)]
+#     keyboard = InlineKeyboardBuilder()
+#     keyboard.button(text="Пополнить 3000 ⭐️", pay=True)
+# 
+#     await message.answer_invoice(
+#         title="Авто услуги",
+#         description="Пополнить баланс",
+#         prices=prices,
+#         provider_token="",
+#         payload="subscription_payment",
+#         currency="XTR",
+#         reply_markup=keyboard.as_markup(),
+#     )
 
 @router.message(CommandStart(deep_link=True))
 async def start_command(message: Message, state: FSMContext):
