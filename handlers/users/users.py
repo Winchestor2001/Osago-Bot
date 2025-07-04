@@ -39,7 +39,7 @@ async def start_command(message: Message, state: FSMContext):
     user_id, full_name, username = message.from_user.id, message.from_user.full_name, message.from_user.username
     args = message.text.split()[1] if message.text.split()[1] else 0
     check = await check_user(user_id)
-    if type(args) == int and int(args) != user_id and not check:
+    if int(args) != user_id and not check:
         await state.update_data(referer=args)
     else:
         btn = await start_menu_btn()
